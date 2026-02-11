@@ -16,39 +16,66 @@
 
     <form method="POST" class="card p-4">
         {% csrf_token %}
-        <div class="row">
-            <div class="col-md-6 mb-3">
+        <style>
+            .inline-field {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .inline-field .form-label {
+                min-width: 180px;
+                margin-bottom: 0;
+                white-space: nowrap;
+            }
+            .inline-field .field-control {
+                flex: 1;
+            }
+        </style>
+        <div class="row g-2">
+            <div class="col-md-6 inline-field">
                 <label class="form-label">Customer Name <span class="text-danger">*</span></label>
-                <input type="text" name="customer_name" class="form-control" value="{{ customer.customer_name }}" required>
+                <div class="field-control">
+                    <input type="text" name="customer_name" class="form-control" value="{{ customer.customer_name }}" required>
+                </div>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 inline-field">
                 <label class="form-label">Phone Number <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" value="{{ customer.phone_number }}" readonly>
+                <div class="field-control">
+                    <input type="text" class="form-control" value="{{ customer.phone_number }}" readonly>
+                </div>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 inline-field">
                 <label class="form-label">Secondary Phone Number (Optional)</label>
-                <input type="text" name="secondary_phone_number" class="form-control" placeholder="9XXXXXXXXX" value="{{ customer.secondary_phone_number }}">
+                <div class="field-control">
+                    <input type="text" name="secondary_phone_number" class="form-control" placeholder="9XXXXXXXXX" value="{{ customer.secondary_phone_number }}">
+                </div>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 inline-field">
                 <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" value="{{ customer.email }}">
+                <div class="field-control">
+                    <input type="email" name="email" class="form-control" value="{{ customer.email }}">
+                </div>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 inline-field">
                 <label class="form-label">City <span class="text-danger">*</span></label>
-                <input type="text" name="city" class="form-control" value="{{ customer.city }}" required>
+                <div class="field-control">
+                    <input type="text" name="city" class="form-control" value="{{ customer.city }}" required>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12 mb-3">
+            <div class="col-md-12 inline-field">
                 <label class="form-label">Address</label>
-                <textarea name="address" class="form-control" rows="3">{{ customer.address }}</textarea>
+                <div class="field-control">
+                    <textarea name="address" class="form-control" rows="3">{{ customer.address }}</textarea>
+                </div>
             </div>
-            <div class="col-md-12 mb-3">
+            <div class="col-md-12 inline-field">
                 <label class="form-label">Notes</label>
-                <textarea name="notes" class="form-control" rows="3" placeholder="Optional notes about the customer">{{ customer.notes }}</textarea>
+                <div class="field-control">
+                    <textarea name="notes" class="form-control" rows="3" placeholder="Optional notes about the customer">{{ customer.notes }}</textarea>
+                </div>
             </div>
         </div>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="submit" class="btn btn-primary mt-2">Save Changes</button>
     </form>
 </div>
 {% endblock %}
