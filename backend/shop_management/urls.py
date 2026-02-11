@@ -2,9 +2,15 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
+from django.http import JsonResponse
+
+
+def health_check(request):
+    return JsonResponse({'status': 'ok'})
 
 urlpatterns = [
     path('', RedirectView.as_view(url='accounts/login/', permanent=False)),
+    path('health/', health_check, name='health_check'),
     path('accounts/', include('apps.accounts.urls')),
     path('tenants/', include('apps.tenants.urls')),
     path('api/', include('apps.api.urls')),

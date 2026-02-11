@@ -26,7 +26,17 @@ source venv/bin/activate
 # 4. Install dependencies
 pip install -r requirements.txt
 
-# 5. Create Django project & apps
+# 5. Configure environment
+# Copy the example file and update values for your environment.
+cp backend/.env.example backend/.env
+
+# Required values:
+# - SECRET_KEY
+# - ALLOWED_HOSTS
+# - DB_ENGINE and DB_* settings
+# - CSRF_TRUSTED_ORIGINS for HTTPS domains
+
+# 6. Create Django project & apps
 django-admin startproject shop_management .
 python manage.py startapp accounts
 python manage.py startapp inventory
@@ -35,7 +45,7 @@ python manage.py startapp customers
 python manage.py startapp sales
 python manage.py startapp reports
 
-# 6. Create MySQL database
+# 7. Create MySQL database
 mysql -u root -p
 # Run these commands in MySQL:
 CREATE DATABASE shop_management CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -44,24 +54,24 @@ GRANT ALL PRIVILEGES ON shop_management.* TO 'shop_user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 
-# 7. Confirm source code is present
+# 8. Confirm source code is present
 # All apps, settings, URLs, and templates are already included in this repository.
 # No manual copy steps are required.
 
-# 8. Run migrations
+# 9. Run migrations
 python manage.py makemigrations
 python manage.py migrate
 
-# 9. Create superuser
+# 10. Create superuser
 python manage.py createsuperuser
 # Username: admin
 # Email: admin@shop.com
 # Password: <set-strong-password>
 
-# 10. Collect static files (for production)
+# 11. Collect static files (for production)
 python manage.py collectstatic
 
-# 11. Run development server
+# 12. Run development server
 python manage.py runserver
 
 # Access at: http://localhost:8000

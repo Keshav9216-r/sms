@@ -60,13 +60,16 @@ def create_vendor(request):
         set_current_tenant(None, None)
         try:
             vendor_name = request.POST.get('vendor_name', '').strip()
+            vendor_person_name = request.POST.get('vendor_person_name', '').strip()
+            pan_number = request.POST.get('pan_number', '').strip()
+            vendor_phone = request.POST.get('vendor_phone', '').strip()
             vendor_code = request.POST.get('vendor_code', '').strip().lower()
             owner_email = request.POST.get('owner_email', '').strip().lower()
             admin_password = request.POST.get('admin_password', '').strip()
             admin_password2 = request.POST.get('admin_password2', '').strip()
             
             # Validation
-            if not all([vendor_name, vendor_code, owner_email, admin_password]):
+            if not all([vendor_name, vendor_person_name, pan_number, vendor_phone, vendor_code, owner_email, admin_password]):
                 messages.error(request, 'All fields are required.')
                 return render(request, 'tenants/create_vendor.html')
             
@@ -95,6 +98,9 @@ def create_vendor(request):
                 db_name = f"shop_{vendor_code}"
                 tenant = Tenant.objects.using('default').create(
                     name=vendor_name,
+                    vendor_person_name=vendor_person_name,
+                    pan_number=pan_number,
+                    vendor_phone=vendor_phone,
                     code=vendor_code,
                     owner_email=owner_email,
                     db_name=db_name,
@@ -161,6 +167,12 @@ def vendor_detail(request, tenant_id):
     
     if request.method == 'POST':
         vendor.name = request.POST.get('name', vendor.name)
+        vendor.vendor_person_name = request.POST.get('vendor_person_name', vendor.vendor_person_name)
+        vendor.pan_number = request.POST.get('pan_number', vendor.pan_number)
+        vendor.vendor_phone = request.POST.get('vendor_phone', vendor.vendor_phone)
+        if not vendor.vendor_person_name or not vendor.pan_number or not vendor.vendor_phone:
+            messages.error(request, 'Vendor person name, PAN number, and phone are required.')
+            return redirect('vendor_detail', tenant_id=vendor.id)
         vendor.status = request.POST.get('status', vendor.status)
         vendor.is_active = vendor.status == 'active'
         vendor.access_customers = request.POST.get('access_customers') == 'on'

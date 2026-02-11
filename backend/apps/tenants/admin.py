@@ -13,6 +13,9 @@ from apps.inventory.models import Product
 class TenantAdmin(admin.ModelAdmin):
     list_display = (
         'name',
+        'vendor_person_name',
+        'pan_number',
+        'vendor_phone',
         'code',
         'owner_email',
         'db_name',
@@ -25,7 +28,7 @@ class TenantAdmin(admin.ModelAdmin):
         'view_data_link',
     )
     list_filter = ('is_active', 'access_customers', 'access_inventory', 'access_sales', 'access_reports')
-    search_fields = ('name', 'code', 'owner_email', 'db_name')
+    search_fields = ('name', 'vendor_person_name', 'pan_number', 'vendor_phone', 'code', 'owner_email', 'db_name')
     ordering = ('name',)
     actions = ['provision_databases']
 

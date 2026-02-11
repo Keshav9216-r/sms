@@ -31,6 +31,21 @@
                             <label for="name">Vendor Name</label>
                             <input type="text" class="form-control" id="name" name="name" value="{{ vendor.name }}" required>
                         </div>
+
+                        <div class="form-group">
+                            <label for="vendor_person_name">Vendor Person Name</label>
+                            <input type="text" class="form-control" id="vendor_person_name" name="vendor_person_name" value="{{ vendor.vendor_person_name }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pan_number">PAN Number</label>
+                            <input type="text" class="form-control" id="pan_number" name="pan_number" value="{{ vendor.pan_number }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vendor_phone">Vendor Phone</label>
+                            <input type="text" class="form-control" id="vendor_phone" name="vendor_phone" value="{{ vendor.vendor_phone }}" required>
+                        </div>
                         
                         <div class="form-group">
                             <label>Vendor Code</label>
@@ -98,6 +113,9 @@
                 </div>
                 <div class="card-body">
                     <p><strong>Database:</strong> <code>{{ vendor.db_name }}</code></p>
+                    <p><strong>Vendor Person:</strong> {{ vendor.vendor_person_name }}</p>
+                    <p><strong>PAN Number:</strong> {{ vendor.pan_number }}</p>
+                    <p><strong>Phone:</strong> {{ vendor.vendor_phone }}</p>
                     <p><strong>Created:</strong> {{ vendor.created_at|date:"Y-m-d H:i" }}</p>
                     <p><strong>Status:</strong> <span class="badge {% if vendor.is_active %}badge-success{% else %}badge-secondary{% endif %}">{{ vendor.status|title }}</span></p>
                 </div>

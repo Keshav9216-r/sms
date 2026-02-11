@@ -11,6 +11,7 @@ from apps.customers.models import Customer, CreditTransaction, IrregularCustomer
 from apps.inventory.models import Category, Product, Inventory
 from apps.sales.models import Sale, SaleItem
 from apps.tenants.models import Tenant
+from apps.tenants.utils import get_current_tenant_db
 
 from .serializers import (
     TenantSerializer,
@@ -46,6 +47,11 @@ class IsTenantManager(permissions.BasePermission):
             return False
 
 
+class RequireTenant(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return bool(get_current_tenant_db())
+
+
 class TenantViewSet(viewsets.ModelViewSet):
     queryset = Tenant.objects.using('default').all()
     serializer_class = TenantSerializer
@@ -55,43 +61,43 @@ class TenantViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RequireTenant]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RequireTenant]
 
 
 class InventoryViewSet(viewsets.ModelViewSet):
     queryset = Inventory.objects.select_related('product').all()
     serializer_class = InventorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RequireTenant]
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RequireTenant]
 
 
 class IrregularCustomerViewSet(viewsets.ModelViewSet):
     queryset = IrregularCustomer.objects.all()
     serializer_class = IrregularCustomerSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RequireTenant]
 
 
 class CreditTransactionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CreditTransaction.objects.select_related('customer').all()
     serializer_class = CreditTransactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RequireTenant]
 
 
 class SaleViewSet(viewsets.ModelViewSet):
     queryset = Sale.objects.select_related('customer', 'cashier').prefetch_related('items').all()
     serializer_class = SaleSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RequireTenant]
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -99,6 +105,25 @@ class SaleViewSet(viewsets.ModelViewSet):
         items = data.get('items', [])
         if not items:
             return Response({'detail': 'Sale items are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        locked_inventory = {}
+        for item in items:
+            product_id = int(item['product'])
+            quantity = int(item['quantity'])
+            if quantity <= 0:
+                return Response({'detail': 'Item quantity must be positive.'}, status=status.HTTP_400_BAD_REQUEST)
+            if product_id not in locked_inventory:
+                product = Product.objects.get(id=product_id)
+                inventory = Inventory.objects.select_for_update().filter(product=product).first()
+                if not inventory:
+                    inventory = Inventory.objects.create(product=product, quantity_in_stock=0)
+                locked_inventory[product_id] = inventory
+            inventory = locked_inventory[product_id]
+            if inventory.quantity_in_stock < quantity:
+                return Response(
+                    {'detail': f'Insufficient stock for {inventory.product.product_name}.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         customer = None
         irregular_customer = None
@@ -151,7 +176,7 @@ class SaleViewSet(viewsets.ModelViewSet):
                 line_total=line_total,
             )
 
-            inventory, _ = Inventory.objects.get_or_create(product=product, defaults={'quantity_in_stock': 0})
+            inventory = locked_inventory[product.id]
             inventory.quantity_in_stock = F('quantity_in_stock') - quantity
             inventory.save()
 
@@ -184,11 +209,11 @@ class SaleViewSet(viewsets.ModelViewSet):
 class SaleItemViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SaleItem.objects.select_related('sale', 'product').all()
     serializer_class = SaleItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RequireTenant]
 
 
 class ReportsViewSet(viewsets.ViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RequireTenant]
 
     def list(self, request):
         today = timezone.localdate()
@@ -213,7 +238,7 @@ class ReportsViewSet(viewsets.ViewSet):
 
 class TenantUserViewSet(viewsets.ModelViewSet):
     serializer_class = TenantUserSerializer
-    permission_classes = [permissions.IsAuthenticated, IsTenantManager]
+    permission_classes = [permissions.IsAuthenticated, RequireTenant, IsTenantManager]
 
     def get_queryset(self):
         return UserProfile.objects.all()
