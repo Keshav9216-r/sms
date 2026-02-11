@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Deactivate Vendor{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5>Deactivate Vendor</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger" role="alert">
+                        <strong>Caution!</strong> This will deactivate the vendor and they will no longer be able to access the system.
+                    </div>
+                    
+                    <p><strong>Vendor Name:</strong> {{ vendor.name }}</p>
+                    <p><strong>Vendor Code:</strong> <code>{{ vendor.code }}</code></p>
+                    <p><strong>Admin Email:</strong> {{ vendor.owner_email }}</p>
+                    
+                    <p class="text-muted">Are you sure you want to deactivate this vendor?</p>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg btn-block">Yes, Deactivate Vendor</button>
+                        <a href="{% url 'vendor_detail' vendor.id %}" class="btn btn-secondary btn-block mt-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

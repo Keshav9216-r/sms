@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Sale{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="section-banner d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Delete Sale</h2>
+            <p>Confirm before removing this transaction.</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="/sales/history/" class="btn btn-outline-secondary">Back to Sales</a>
+        </div>
+    </div>
+    <div class="card p-4">
+        <h4 class="mb-3">Delete Sale</h4>
+        <p>Are you sure you want to delete <strong>{{ sale.sale_number }}</strong>?</p>
+        {% if messages %}
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        <form method="POST">
+            {% csrf_token %}
+            <a href="/sales/history/" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

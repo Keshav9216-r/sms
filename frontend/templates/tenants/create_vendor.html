@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Vendor{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Create New Vendor</h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="alerts">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="vendor_name">Vendor Name *</label>
+                            <input type="text" class="form-control" id="vendor_name" name="vendor_name" required placeholder="e.g., ABC Store">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="vendor_code">Vendor Code *</label>
+                            <input type="text" class="form-control" id="vendor_code" name="vendor_code" required placeholder="e.g., abc-store" pattern="[a-z0-9\-]+" title="Lowercase letters, numbers, and hyphens only">
+                            <small class="form-text text-muted">Used for login (lowercase, hyphens allowed)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="owner_email">Admin Email *</label>
+                            <input type="email" class="form-control" id="owner_email" name="owner_email" required placeholder="admin@vendor.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="admin_password">Admin Password *</label>
+                            <input type="password" class="form-control" id="admin_password" name="admin_password" required minlength="6" placeholder="Minimum 6 characters">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="admin_password2">Confirm Password *</label>
+                            <input type="password" class="form-control" id="admin_password2" name="admin_password2" required minlength="6" placeholder="Confirm password">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block">Create Vendor</button>
+                        <a href="{% url 'superadmin_dashboard' %}" class="btn btn-secondary btn-block mt-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Cancel Sale{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="section-banner d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Cancel Sale {{ sale.sale_number }}</h2>
+            <p>Stop this order before it is completed.</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="/sales/{{ sale.sale_number }}/" class="btn btn-outline-secondary">Back to Sale</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4>Cancel Sale {{ sale.sale_number }}</h4>
+            <p>Are you sure you want to cancel this sale?</p>
+            <form method="post">
+                {% csrf_token %}
+                <button class="btn btn-warning" type="submit">Confirm Cancel</button>
+                <a href="/sales/{{ sale.sale_number }}/" class="btn btn-outline-secondary">Back</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

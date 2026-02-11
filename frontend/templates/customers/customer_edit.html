@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Customer{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="section-banner d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Edit Customer</h2>
+            <p>Update contact details and notes.</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="/customers/" class="btn btn-outline-secondary">Back to Customers</a>
+        </div>
+    </div>
+
+    <form method="POST" class="card p-4">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+                <input type="text" name="customer_name" class="form-control" value="{{ customer.customer_name }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" value="{{ customer.phone_number }}" readonly>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Secondary Phone Number (Optional)</label>
+                <input type="text" name="secondary_phone_number" class="form-control" placeholder="9XXXXXXXXX" value="{{ customer.secondary_phone_number }}">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" value="{{ customer.email }}">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">City <span class="text-danger">*</span></label>
+                <input type="text" name="city" class="form-control" value="{{ customer.city }}" required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label class="form-label">Address</label>
+                <textarea name="address" class="form-control" rows="3">{{ customer.address }}</textarea>
+            </div>
+            <div class="col-md-12 mb-3">
+                <label class="form-label">Notes</label>
+                <textarea name="notes" class="form-control" rows="3" placeholder="Optional notes about the customer">{{ customer.notes }}</textarea>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

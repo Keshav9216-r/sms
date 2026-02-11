@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Add Product{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <div class="section-banner d-flex flex-wrap justify-content-between align-items-center mb-3 compact-banner">
+        <div>
+            <h2>Add Product</h2>
+            <p>Create a new product and set pricing details.</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="/inventory/" class="btn btn-outline-secondary">Back to Products</a>
+        </div>
+    </div>
+
+    <form method="POST" class="card p-4" enctype="multipart/form-data">
+        {% csrf_token %}
+        <style>
+            .compact-banner {
+                padding: 12px 16px;
+            }
+            .compact-form .row {
+                row-gap: 8px;
+            }
+            .compact-form .mb-3 {
+                margin-bottom: 0 !important;
+            }
+            .compact-form .form-label {
+                font-size: 0.8rem;
+                margin-bottom: 4px;
+            }
+            .compact-form .form-control,
+            .compact-form .form-select {
+                font-size: 0.85rem;
+                padding-top: 6px;
+                padding-bottom: 6px;
+            }
+            .compact-form textarea.form-control {
+                min-height: 42px;
+            }
+            .inline-field {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .inline-field .form-label {
+                min-width: 120px;
+                margin-bottom: 0;
+                white-space: nowrap;
+            }
+            .inline-field .field-control {
+                flex: 1;
+            }
+        </style>
+        <div class="row compact-form g-2">
+            <div class="col-md-12 inline-field">
+                <label class="form-label">Category</label>
+                <div class="field-control">
+                    <select name="category" class="form-select form-select-sm" id="category-select" required>
+                    <option value="" selected disabled>Select category</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" data-category-type="{{ category.category_type }}">{{ category.name }}</option>
+                    {% endfor %}
+                    </select>
+                    <small class="text-muted">Choose a category to unlock the product form. <a href="/inventory/categories/add/">Add a category</a>.</small>
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">SKU</label>
+                <div class="field-control">
+                    <input type="text" name="sku" class="form-control form-control-sm" required data-lockable data-max-words="20">
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Barcode</label>
+                <div class="field-control">
+                    <select id="barcode-mode" class="form-select form-select-sm mb-1" data-lockable>
+                    <option value="manual" selected>Type Barcode</option>
+                    <option value="camera">Scan with Camera</option>
+                    <option value="none">No Barcode</option>
+                    </select>
+                    <input id="barcode-input" type="text" name="barcode" class="form-control form-control-sm" placeholder="Enter barcode..." data-lockable>
+                    <div id="barcode-camera" class="border rounded p-2 mt-2 d-none">
+                        <div id="barcode-reader" style="width: 100%;"></div>
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <button id="barcode-scan-toggle" class="btn btn-sm btn-outline-primary" type="button">Start Scan</button>
+                            <span class="small text-muted">Allow camera permission to scan.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Product Name</label>
+                <div class="field-control">
+                    <input type="text" name="product_name" class="form-control form-control-sm" required data-lockable data-max-words="20">
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Description</label>
+                <div class="field-control">
+                    <textarea name="description" class="form-control form-control-sm" rows="1" placeholder="Optional description..." data-lockable data-max-words="20"></textarea>
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Unit</label>
+                <div class="field-control">
+                    <input type="text" name="unit" class="form-control form-control-sm" value="piece" data-lockable data-max-words="20">
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Supplier</label>
+                <div class="field-control">
+                    <input type="text" name="supplier" class="form-control form-control-sm" placeholder="Supplier name" data-lockable data-max-words="20">
+                </div>
+            </div>
+            <div class="col-12 d-none" id="book-fields">
+                <div class="card border-0 bg-light p-2">
+                    <h6 class="fw-bold mb-2">Book Details</h6>
+                    <div class="row">
+                        <div class="col-md-4 inline-field">
+                            <label class="form-label">Class</label>
+                            <div class="field-control">
+                                <input type="text" name="book_class" class="form-control form-control-sm" placeholder="e.g. Class 10" data-lockable data-max-words="20">
+                            </div>
+                        </div>
+                        <div class="col-md-4 inline-field">
+                            <label class="form-label">Book Name</label>
+                            <div class="field-control">
+                                <input type="text" name="book_name" class="form-control form-control-sm" placeholder="Book title" data-lockable data-max-words="20">
+                            </div>
+                        </div>
+                        <div class="col-md-4 inline-field">
+                            <label class="form-label">Publication</label>
+                            <div class="field-control">
+                                <input type="text" name="book_publication" class="form-control form-control-sm" placeholder="Publication" data-lockable data-max-words="20">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Supply Price</label>
+                <div class="field-control">
+                    <input type="number" step="0.01" name="cost_price" class="form-control form-control-sm" required data-lockable>
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Retail Price</label>
+                <div class="field-control">
+                    <input type="number" step="0.01" name="selling_price" class="form-control form-control-sm" required data-lockable>
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Wholesale</label>
+                <div class="field-control">
+                    <input type="number" step="0.01" name="wholesale_price" class="form-control form-control-sm" data-lockable>
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Reorder Level</label>
+                <div class="field-control">
+                    <input type="number" name="reorder_level" class="form-control form-control-sm" value="10" data-lockable>
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Initial Quantity</label>
+                <div class="field-control">
+                    <input type="number" name="quantity_in_stock" class="form-control form-control-sm" value="0" data-lockable>
+                </div>
+            </div>
+            <div class="col-md-4 inline-field">
+                <label class="form-label">Product Image</label>
+                <div class="field-control">
+                    <input type="file" name="image" class="form-control form-control-sm" accept="image/*" data-lockable>
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm mt-2" id="save-product" disabled>Save Product</button>
+    </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<script>
+const barcodeMode = document.getElementById('barcode-mode');
+const barcodeInput = document.getElementById('barcode-input');
+const cameraWrapper = document.getElementById('barcode-camera');
+const scanToggle = document.getElementById('barcode-scan-toggle');
+let scanning = false;
+let lastCode = null;
+let sameCount = 0;
+const REQUIRED_MATCHES = 3;
+
+function stopScan() {
+    if (scanning && window.Quagga) {
+        Quagga.stop();
+        scanning = false;
+        scanToggle.textContent = 'Start Scan';
+    }
+}
+
+function startScan() {
+    if (!window.Quagga) {
+        return;
+    }
+    lastCode = null;
+    sameCount = 0;
+    Quagga.init({
+        inputStream: {
+            name: 'Live',
+            type: 'LiveStream',
+            target: document.querySelector('#barcode-reader'),
+            constraints: { facingMode: 'environment' },
+        },
+        decoder: {
+            readers: ['code_128_reader', 'ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader']
+        },
+        locate: true,
+    }, (err) => {
+        if (err) {
+            alert('Unable to access camera for barcode scanning.');
+            return;
+        }
+        Quagga.start();
+        scanning = true;
+        scanToggle.textContent = 'Stop Scan';
+    });
+}
+
+if (scanToggle) {
+    scanToggle.addEventListener('click', () => {
+        if (scanning) {
+            stopScan();
+        } else {
+            startScan();
+        }
+    });
+}
+
+if (window.Quagga) {
+    Quagga.onDetected((data) => {
+        if (!data || !data.codeResult || !data.codeResult.code) {
+            return;
+        }
+        const code = data.codeResult.code;
+        if (code === lastCode) {
+            sameCount += 1;
+        } else {
+            lastCode = code;
+            sameCount = 1;
+        }
+        if (sameCount >= REQUIRED_MATCHES) {
+            barcodeInput.value = code;
+            stopScan();
+        }
+    });
+}
+
+barcodeMode.addEventListener('change', () => {
+    const mode = barcodeMode.value;
+    if (mode === 'none') {
+        barcodeInput.value = '';
+        barcodeInput.disabled = true;
+        barcodeInput.readOnly = false;
+        cameraWrapper.classList.add('d-none');
+        stopScan();
+        return;
+    }
+
+    barcodeInput.disabled = false;
+    if (mode === 'camera') {
+        barcodeInput.readOnly = true;
+        cameraWrapper.classList.remove('d-none');
+    } else {
+        barcodeInput.readOnly = false;
+        cameraWrapper.classList.add('d-none');
+        stopScan();
+    }
+});
+
+const categorySelect = document.getElementById('category-select');
+const bookFields = document.getElementById('book-fields');
+const lockableFields = document.querySelectorAll('[data-lockable]');
+const saveButton = document.getElementById('save-product');
+const productNameInput = document.querySelector('input[name="product_name"]');
+const bookNameInput = document.querySelector('input[name="book_name"]');
+const maxWordInputs = document.querySelectorAll('[data-max-words]');
+
+function toggleBookFields() {
+    if (!categorySelect || !bookFields) {
+        return;
+    }
+    const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+    const categoryType = selectedOption ? selectedOption.getAttribute('data-category-type') : null;
+    const isBook = categoryType === 'books';
+    bookFields.classList.toggle('d-none', !isBook);
+    lockableFields.forEach((field) => {
+        field.disabled = !categorySelect.value;
+    });
+    if (saveButton) {
+        saveButton.disabled = !categorySelect.value;
+    }
+}
+
+if (categorySelect) {
+    categorySelect.addEventListener('change', toggleBookFields);
+    toggleBookFields();
+}
+
+if (bookNameInput && productNameInput) {
+    bookNameInput.addEventListener('input', () => {
+        if (!productNameInput.value.trim()) {
+            productNameInput.value = bookNameInput.value;
+        }
+    });
+}
+
+function enforceWordLimit(field) {
+    const maxWords = parseInt(field.getAttribute('data-max-words') || '20', 10);
+    const words = field.value.trim().split(/\s+/).filter(Boolean);
+    if (words.length > maxWords) {
+        field.value = words.slice(0, maxWords).join(' ');
+    }
+}
+
+maxWordInputs.forEach((field) => {
+    field.addEventListener('input', () => enforceWordLimit(field));
+});
+</script>
+{% endblock %}

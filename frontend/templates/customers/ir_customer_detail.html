@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}IR Customer Details{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="section-banner d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2>IR Customer</h2>
+            <p>{{ irregular_customer.customer_name }}</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="/customers/" class="btn btn-outline-secondary">Back to Customers</a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div><strong>Name:</strong> {{ irregular_customer.customer_name }}</div>
+                    <div><strong>Phone:</strong> {{ irregular_customer.phone_number|default:"—" }}</div>
+                </div>
+                <div class="col-md-8">
+                    <div><strong>Address:</strong> {{ irregular_customer.address|default:"—" }}</div>
+                    <div><strong>Created:</strong> {{ irregular_customer.created_date|date:"Y-m-d H:i" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <strong>Past Purchases</strong>
+        </div>
+        <div class="card-body">
+            {% if sales %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Sale #</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in sales %}
+                        <tr>
+                            <td>{{ sale.sale_number }}</td>
+                            <td>{{ sale.sale_date|date:"Y-m-d H:i" }}</td>
+                            <td>Rs. {{ sale.total_amount }}</td>
+                            <td>{{ sale.payment_method }}</td>
+                            <td>{{ sale.payment_status }}</td>
+                            <td>
+                                <a href="/sales/receipt/{{ sale.sale_number }}/" class="btn btn-sm btn-info">View</a>
+                                <a href="/sales/receipt/{{ sale.sale_number }}/pdf/" class="btn btn-sm btn-outline-primary">PDF</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info mb-0">No purchases found for this IR customer.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    {% if is_superadmin %}
+        <div class="section-banner d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div>
+                <h2>Vendor Reports</h2>
+                <p>Overview of vendor status and access details.</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a href="{% url 'superadmin_dashboard' %}" class="action-chip">Back to Vendors</a>
+            </div>
+        </div>
+
+        <div class="row mb-4 g-3">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Total Vendors</h6>
+                        <h2>{{ total_vendors }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Active Vendors</h6>
+                        <h2>{{ active_vendors }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-warning h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Inactive Vendors</h6>
+                        <h2>{{ inactive_vendors }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Vendor Details</h5>
+            </div>
+            <div class="card-body">
+                {% if vendors %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Vendor Name</th>
+                                    <th>Code</th>
+                                    <th>Admin Email</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Access</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vendor in vendors %}
+                                <tr>
+                                    <td>{{ vendor.name }}</td>
+                                    <td><code>{{ vendor.code }}</code></td>
+                                    <td>{{ vendor.owner_email }}</td>
+                                    <td>
+                                        {% if vendor.is_active %}
+                                            <span class="badge badge-success">{{ vendor.status|title }}</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ vendor.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if vendor.access_inventory %}Inventory{% endif %}
+                                            {% if vendor.access_sales %}{% if vendor.access_inventory %}, {% endif %}Sales{% endif %}
+                                            {% if vendor.access_customers %}{% if vendor.access_inventory or vendor.access_sales %}, {% endif %}Customers{% endif %}
+                                            {% if vendor.access_reports %}{% if vendor.access_inventory or vendor.access_sales or vendor.access_customers %}, {% endif %}Reports{% endif %}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No vendors available.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="section-banner d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div>
+                <h2>Dashboard</h2>
+                <p>Live snapshot of inventory, sales, and customer activity.</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a href="/reports/" class="action-chip">Reports Overview</a>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="row mb-4 g-3">
+            <div class="col-md-3">
+                <a href="/inventory/" class="text-decoration-none">
+                    <div class="card text-white bg-primary h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">Total Products</h6>
+                            <h2>{{ total_products }}</h2>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'today_sales_report' %}" class="text-decoration-none">
+                    <div class="card text-white bg-success h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">Today's Sales</h6>
+                            <h2>Rs.{{ today_sales }}</h2>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="/customers/" class="text-decoration-none">
+                    <div class="card text-white bg-info h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">Total Customers</h6>
+                            <h2>{{ total_customers }}</h2>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="/reports/low-stock/" class="text-decoration-none">
+                    <div class="card text-white bg-warning h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">Low Stock Items</h6>
+                            <h2>{{ low_stock_count }}</h2>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Quick Access</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{% url 'product_list' %}" class="btn btn-outline-primary">Manage Products</a>
+                        <a href="{% url 'pos' %}" class="btn btn-outline-success">New Sale</a>
+                        <a href="{% url 'customer_list' %}" class="btn btn-outline-info">Customers</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

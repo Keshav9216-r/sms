@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendor Details - {{ vendor.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Vendor Details: {{ vendor.name }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="alerts">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="name">Vendor Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ vendor.name }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Vendor Code</label>
+                            <input type="text" class="form-control" value="{{ vendor.code }}" disabled>
+                            <small class="form-text text-muted">Cannot be changed</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Admin Email</label>
+                            <input type="email" class="form-control" value="{{ vendor.owner_email }}" disabled>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="active" {% if vendor.status == 'active' %}selected{% endif %}>Active</option>
+                                <option value="inactive" {% if vendor.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                                <option value="suspended" {% if vendor.status == 'suspended' %}selected{% endif %}>Suspended</option>
+                            </select>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h6>Feature Access Control</h6>
+                        
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="access_customers" name="access_customers" {% if vendor.access_customers %}checked{% endif %}>
+                            <label class="form-check-label" for="access_customers">
+                                Access Customers Module
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="access_inventory" name="access_inventory" {% if vendor.access_inventory %}checked{% endif %}>
+                            <label class="form-check-label" for="access_inventory">
+                                Access Inventory Module
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="access_sales" name="access_sales" {% if vendor.access_sales %}checked{% endif %}>
+                            <label class="form-check-label" for="access_sales">
+                                Access Sales Module
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="access_reports" name="access_reports" {% if vendor.access_reports %}checked{% endif %}>
+                            <label class="form-check-label" for="access_reports">
+                                Access Reports Module
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Update Vendor</button>
+                        <a href="{% url 'superadmin_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6>Vendor Information</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Database:</strong> <code>{{ vendor.db_name }}</code></p>
+                    <p><strong>Created:</strong> {{ vendor.created_at|date:"Y-m-d H:i" }}</p>
+                    <p><strong>Status:</strong> <span class="badge {% if vendor.is_active %}badge-success{% else %}badge-secondary{% endif %}">{{ vendor.status|title }}</span></p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h6>Admin Actions</h6>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'reset_vendor_password' vendor.id %}" class="btn btn-warning btn-block mb-2">Reset Admin Password</a>
+                    <a href="{% url 'superadmin_login_as_vendor' vendor.id %}" class="btn btn-info btn-block mb-2">View as Admin</a>
+                    <a href="{% url 'delete_vendor' vendor.id %}" class="btn btn-outline-danger btn-block mb-2">Delete Vendor</a>
+                    {% if vendor.is_active %}
+                    <a href="{% url 'deactivate_vendor' vendor.id %}" class="btn btn-danger btn-block">Deactivate Vendor</a>
+                    {% else %}
+                    <a href="{% url 'activate_vendor' vendor.id %}" class="btn btn-success btn-block">Activate Vendor</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

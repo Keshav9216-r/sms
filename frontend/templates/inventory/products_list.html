@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Products - Shop Management{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="section-banner d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2>📦 Products</h2>
+            <p>Track stock, pricing, and barcode details in one place.</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <div class="btn-group" role="group" aria-label="Inventory actions">
+                <a href="/inventory/products/add/" class="btn btn-primary">Add Product</a>
+                <a href="/inventory/products/books/" class="btn btn-outline-primary {% if category_type == 'books' %}active{% endif %}">View Books</a>
+                <a href="/inventory/products/stationery/" class="btn btn-outline-primary {% if category_type == 'stationery' %}active{% endif %}">View Stationery</a>
+            </div>
+        </div>
+    </div>
+
+    <form method="get" class="mb-4">
+        <div class="card p-3 mb-3">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-8">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Filter</span>
+                        <select name="filter_by" class="form-select" style="max-width: 180px;">
+                            <option value="all" {% if filter_by == 'all' %}selected{% endif %}>All</option>
+                            <option value="name" {% if filter_by == 'name' %}selected{% endif %}>Name</option>
+                            <option value="sku" {% if filter_by == 'sku' %}selected{% endif %}>SKU</option>
+                            <option value="barcode" {% if filter_by == 'barcode' %}selected{% endif %}>Barcode</option>
+                            <option value="category" {% if filter_by == 'category' %}selected{% endif %}>Category</option>
+                            <option value="price" {% if filter_by == 'price' %}selected{% endif %}>Price</option>
+                        </select>
+                        <input type="text" name="q" class="form-control" placeholder="Type Here..." value="{{ query|default:'' }}">
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Apply</button>
+                    <a href="/inventory/products/" class="btn btn-outline-secondary btn-sm">Reset</a>
+                </div>
+            </div>
+        </div>
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Sort By</label>
+                <select name="sort_by" class="form-select form-select-sm">
+                    <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A → Z)</option>
+                    <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z → A)</option>
+                    <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price (Low → High)</option>
+                    <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price (High → Low)</option>
+                    <option value="stock_asc" {% if sort_by == 'stock_asc' %}selected{% endif %}>Stock (Low → High)</option>
+                    <option value="stock_desc" {% if sort_by == 'stock_desc' %}selected{% endif %}>Stock (High → Low)</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-primary btn-sm">Apply Sort</button>
+            </div>
+        </div>
+    </form>
+
+    {% if products %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Image</th>
+                    <th>SKU</th>
+                    <th>Barcode</th>
+                    <th>Name</th>
+                    <th>Book Name</th>
+                    <th>Class</th>
+                    <th>Publication</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Supplier</th>
+                    <th>Supply Price</th>
+                    <th>Retail Price</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.product_name }}" style="height: 40px; width: 40px; object-fit: cover;" class="rounded">
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>{{ product.sku }}</td>
+                    <td>{{ product.barcode|default:"—" }}</td>
+                    <td>{{ product.product_name }}</td>
+                    <td>{{ product.book_name|default:"—" }}</td>
+                    <td>{{ product.book_class|default:"—" }}</td>
+                    <td>{{ product.book_publication|default:"—" }}</td>
+                    <td>{{ product.description|default:"—" }}</td>
+                    <td>{{ product.category.name }}</td>
+                    <td>{{ product.supplier|default:"—" }}</td>
+                    <td>Rs. {{ product.cost_price }}</td>
+                    <td>Rs. {{ product.selling_price }}</td>
+                    <td><span class="badge bg-info">{{ product.inventory.quantity_in_stock }}</span></td>
+                    <td>
+                        <a href="/inventory/products/{{ product.id }}/edit/" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="/inventory/products/{{ product.id }}/delete/" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No products found. <a href="/inventory/products/add/">Add one now</a></div>
+    {% endif %}
+</div>
+{% endblock %}

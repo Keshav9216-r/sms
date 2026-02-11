@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Shop Management{% endblock %}
+
+{% block content %}
+<style>
+    .login-choice {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .login-choice-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+        max-width: 520px;
+        width: 100%;
+        text-align: center;
+    }
+    .login-choice-card h1 {
+        font-size: 1.8rem;
+        margin-bottom: 8px;
+    }
+    .login-choice-card p {
+        color: #64748b;
+        margin-bottom: 20px;
+    }
+    .login-choice-actions {
+        display: grid;
+        gap: 12px;
+    }
+</style>
+
+<div class="login-choice">
+    <div class="login-choice-card">
+        <h1>Choose Login</h1>
+        <p>Select the login window for your role.</p>
+        <div class="login-choice-actions">
+            <a class="btn btn-dark" href="/accounts/admin/">Superadmin Login</a>
+            <a class="btn btn-primary" href="/accounts/vendor-login/">Vendor Login</a>
+            <a class="btn btn-outline-primary" href="/accounts/user-login/">User Login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

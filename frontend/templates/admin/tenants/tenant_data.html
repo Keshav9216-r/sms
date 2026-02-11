@@ -1,0 +1,78 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1>{{ tenant.name }} ({{ tenant.code }})</h1>
+
+<h2>{% trans "Customers" %}</h2>
+{% if customers %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>City</th>
+                <th>Current Credit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>{{ customer.customer_name }}</td>
+                <td>{{ customer.phone_number }}</td>
+                <td>{{ customer.email|default:"—" }}</td>
+                <td>{{ customer.city|default:"—" }}</td>
+                <td>{{ customer.current_credit }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p>No customers found.</p>
+{% endif %}
+
+<h2 class="mt-4">{% trans "Products" %}</h2>
+{% if products %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Book Name</th>
+                <th>Class</th>
+                <th>Publication</th>
+                <th>SKU</th>
+                <th>Barcode</th>
+                <th>Category</th>
+                <th>Supplier</th>
+                <th>Supply Price</th>
+                <th>Retail Price</th>
+                <th>Stock</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.product_name }}</td>
+                <td>{{ product.book_name|default:"—" }}</td>
+                <td>{{ product.book_class|default:"—" }}</td>
+                <td>{{ product.book_publication|default:"—" }}</td>
+                <td>{{ product.sku }}</td>
+                <td>{{ product.barcode|default:"—" }}</td>
+                <td>{{ product.category.name }}</td>
+                <td>{{ product.supplier|default:"—" }}</td>
+                <td>{{ product.cost_price }}</td>
+                <td>{{ product.selling_price }}</td>
+                <td>{{ product.current_stock }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p>No products found.</p>
+{% endif %}
+{% endblock %}
