@@ -7,6 +7,13 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+
+def _env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -14,10 +21,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-only-for-development')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = _env_bool('DEBUG', False)
 
 # Only allow specific hosts in production
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if host.strip()
+]
+
+if not DEBUG:
+    if os.getenv('SECRET_KEY') is None:
+        raise RuntimeError('SECRET_KEY must be set in production.')
+    if os.getenv('ALLOWED_HOSTS') is None:
+        raise RuntimeError('ALLOWED_HOSTS must be set in production.')
 
 # Application definition
 INSTALLED_APPS = [
@@ -33,6 +50,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'django_filters',
     'rest_framework',
+    'django_extensions',
     
     # Local apps
         'apps.accounts.apps.AccountsConfig',
@@ -77,13 +95,43 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'shop_management.wsgi.application'
 
-# Database Configuration - SQLite (legacy)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database Configuration (env-driven)
+DB_ENGINE = os.getenv('DB_ENGINE', 'sqlite').strip().lower()
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER', '')
+DB_PASSWORD = os.getenv('DB_PASSWORD', '')
+DB_HOST = os.getenv('DB_HOST', '127.0.0.1')
+DB_PORT = os.getenv('DB_PORT')
+
+if DB_ENGINE == 'postgres':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': DB_NAME or 'shop_management',
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': DB_PORT or '5432',
+        }
     }
-}
+elif DB_ENGINE == 'mysql':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': DB_NAME or 'shop_management',
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': DB_PORT or '3306',
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / (DB_NAME or 'db.sqlite3'),
+        }
+    }
 
 DATABASE_ROUTERS = ['apps.tenants.db_router.TenantDatabaseRouter']
 
@@ -149,6 +197,32 @@ REST_FRAMEWORK = {
 # Session settings
 SESSION_COOKIE_AGE = 3600  # 1 hour
 SESSION_SAVE_EVERY_REQUEST = True
+
+# Security settings (override via env)
+SECURE_SSL_REDIRECT = _env_bool('SECURE_SSL_REDIRECT', not DEBUG)
+SESSION_COOKIE_SECURE = _env_bool('SESSION_COOKIE_SECURE', not DEBUG)
+CSRF_COOKIE_SECURE = _env_bool('CSRF_COOKIE_SECURE', not DEBUG)
+SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '0' if DEBUG else '31536000'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', not DEBUG)
+SECURE_HSTS_PRELOAD = _env_bool('SECURE_HSTS_PRELOAD', not DEBUG)
+SECURE_REFERRER_POLICY = os.getenv('SECURE_REFERRER_POLICY', 'strict-origin-when-cross-origin')
+SECURE_CONTENT_TYPE_NOSNIFF = _env_bool('SECURE_CONTENT_TYPE_NOSNIFF', True)
+X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'DENY')
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+
+if _env_bool('SECURE_PROXY_SSL_HEADER', not DEBUG):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Celery
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', CELERY_BROKER_URL or '')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 # Logging
 LOGGING = {

@@ -63,6 +63,10 @@ class TenantAccessMiddleware:
         ('/inventory/', 'access_inventory'),
         ('/sales/', 'access_sales'),
         ('/reports/', 'access_reports'),
+        ('/api/customers/', 'access_customers'),
+        ('/api/inventory/', 'access_inventory'),
+        ('/api/sales/', 'access_sales'),
+        ('/api/reports/', 'access_reports'),
     )
 
     def __init__(self, get_response):

@@ -13,6 +13,9 @@ class TenantSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'name',
+            'vendor_person_name',
+            'pan_number',
+            'vendor_phone',
             'code',
             'owner_email',
             'db_name',

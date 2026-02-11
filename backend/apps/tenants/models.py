@@ -12,6 +12,9 @@ class Tenant(models.Model):
     ]
     
     name = models.CharField(max_length=150)
+    vendor_person_name = models.CharField(max_length=150)
+    pan_number = models.CharField(max_length=50)
+    vendor_phone = models.CharField(max_length=20)
     code = models.SlugField(unique=True)
     owner_email = models.EmailField()
     

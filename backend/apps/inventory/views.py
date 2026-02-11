@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from .models import Product, Category, Inventory
 import barcode
 from barcode.writer import ImageWriter
@@ -235,9 +235,34 @@ def category_list(request):
 @login_required
 def category_add(request):
     if request.method == 'POST':
-        name = request.POST.get('name')
-        category_type = request.POST.get('category_type')
-        Category.objects.create(name=name, category_type=category_type)
+        name = (request.POST.get('name') or '').strip()
+        category_type = (request.POST.get('category_type') or '').strip()
+        description = (request.POST.get('description') or '').strip()
+
+        if not name or not category_type:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Name and type are required.'}, status=400)
+            messages.error(request, 'Name and type are required.')
+            return render(request, 'inventory/category_add.html')
+
+        if Category.objects.filter(name__iexact=name).exists():
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Category name already exists.'}, status=400)
+            messages.error(request, 'Category name already exists.')
+            return render(request, 'inventory/category_add.html')
+
+        category = Category.objects.create(
+            name=name,
+            category_type=category_type,
+            description=description,
+        )
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'id': category.id,
+                'name': category.name,
+                'category_type': category.category_type,
+            })
         return redirect('category_list')
     
     return render(request, 'inventory/category_add.html')
