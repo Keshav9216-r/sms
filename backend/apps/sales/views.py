@@ -13,6 +13,7 @@ from .utils import generate_receipt_pdf, number_to_words
 from decimal import Decimal
 import json
 import logging
+from apps.accounts.views import is_staff_level, log_change
 
 logger = logging.getLogger(__name__)
 
@@ -221,7 +222,7 @@ def receipt_pdf(request, sale_number):
     if not tenant_db:
         return _redirect_no_tenant(request)
     sale = get_object_or_404(Sale.objects.using(tenant_db), sale_number=sale_number)
-    buffer = generate_receipt_pdf(sale)
+    buffer = generate_receipt_pdf(sale, tenant=getattr(request, 'tenant', None))
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
     disposition = 'attachment' if request.GET.get('download') == '1' else 'inline'
     response['Content-Disposition'] = f'{disposition}; filename="receipt_{sale_number}.pdf"'
@@ -521,7 +522,7 @@ def email_receipt(request, sale_number):
         messages.error(request, 'Customer email is not available for this sale.')
         return redirect('sales_detail', sale_number=sale.sale_number)
 
-    pdf_buffer = generate_receipt_pdf(sale)
+    pdf_buffer = generate_receipt_pdf(sale, tenant=getattr(request, 'tenant', None))
     email = EmailMessage(
         subject=f"Receipt {sale.receipt_number or sale.sale_number}",
         body="Please find your receipt attached. Thank you for your purchase!",
@@ -549,12 +550,27 @@ def sales_edit(request, sale_number):
         return _redirect_no_tenant(request)
     sale = get_object_or_404(Sale.objects.using(tenant_db), sale_number=sale_number)
     if request.method == 'POST':
+        before = {
+            'payment_method': sale.payment_method,
+            'paid_amount': str(sale.paid_amount),
+            'payment_status': sale.payment_status,
+            'notes': sale.notes or '',
+        }
         sale.payment_method = request.POST.get('payment_method', sale.payment_method)
         sale.paid_amount = Decimal(str(request.POST.get('paid_amount', sale.paid_amount)))
         sale.notes = request.POST.get('notes', '')
         sale.payment_status = 'paid' if sale.paid_amount >= sale.total_amount else 'partial'
         sale.save(using=tenant_db)
+        after = {
+            'payment_method': sale.payment_method,
+            'paid_amount': str(sale.paid_amount),
+            'payment_status': sale.payment_status,
+            'notes': sale.notes or '',
+        }
         _ensure_credit_transaction(sale, getattr(request.user, 'profile', None), db_alias=tenant_db)
+        log_change(request, 'update', 'Sale', sale_number,
+                   f'Updated payment for sale {sale_number}: method={sale.payment_method}, paid={sale.paid_amount}.',
+                   before=before, after=after)
         messages.success(request, 'Sale updated successfully.')
         return redirect('sales_list')
     return render(request, 'sales/sales_edit.html', {'sale': sale})
@@ -562,6 +578,9 @@ def sales_edit(request, sale_number):
 @login_required
 @transaction.atomic
 def sales_delete(request, sale_number):
+    if is_staff_level(request):
+        messages.error(request, 'Staff users cannot delete records.')
+        return redirect('sales_list')
     tenant_db = _get_tenant_db_or_redirect(request)
     if not tenant_db:
         return _redirect_no_tenant(request)

@@ -15,6 +15,7 @@ class Tenant(models.Model):
     code = models.SlugField(unique=True)
     owner_email = models.EmailField()
     pan_number = models.CharField(max_length=30, blank=True, default='')
+    qr_code = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
     
     # Database configuration for this vendor
     # WARNING: db_password is stored as plaintext. In production, use an

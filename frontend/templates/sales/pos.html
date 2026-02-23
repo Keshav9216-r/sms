@@ -1,237 +1,467 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}POS - Point of Sale{% endblock %}
+{% block title %}POS — Point of Sale{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-2" id="pos-root">
-    <style>
-        #pos-root {
-            font-size: 0.9rem;
-        }
-        .pos-hero {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .pos-hero h2 {
-            font-size: 1.3rem;
-            margin-bottom: 4px;
-        }
-        .pos-hero .pos-subtitle {
-            color: var(--text-muted);
-            margin: 0;
-        }
-        .pos-kpis {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .pos-kpi-card {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 6px 10px;
-            min-width: 140px;
-            box-shadow: var(--shadow);
-        }
-        .pos-kpi-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-        .pos-kpi-value {
-            font-weight: 700;
-            font-size: 1rem;
-        }
-        .pos-layout {
-            align-items: flex-start;
-        }
-        .pos-summary {
-            position: sticky;
-            top: 76px;
-        }
-        .pos-summary .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .pos-divider {
-            border-top: 1px dashed var(--border);
-            margin: 10px 0;
-        }
-        .pos-action-btn {
-            width: 100%;
-        }
-        .pos-card-body {
-            padding: 0.75rem;
-        }
-        .pos-section-compact {
-            margin-bottom: 0.5rem;
-        }
-        .pos-form-compact .form-label {
-            font-size: 0.78rem;
-            margin-bottom: 4px;
-        }
-        .pos-form-compact .form-control,
-        .pos-form-compact .form-select {
-            font-size: 0.85rem;
-            padding-top: 5px;
-            padding-bottom: 5px;
-        }
-        .pos-table-wrapper {
-            max-height: 300px;
-            overflow: auto;
-        }
-        .pos-table thead th {
-            font-size: 0.85rem;
-            letter-spacing: 0.02em;
-        }
-        .pos-input-muted {
-            background: #f8fafc;
-        }
-        .pos-barcode-inline {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .pos-barcode-inline .form-select {
-            min-width: 160px;
-        }
-        .pos-barcode-camera {
-            margin-top: 8px;
-            max-width: 320px;
-        }
-        #barcode-reader {
-            max-width: 320px;
-            max-height: 200px;
-            overflow: hidden;
-        }
-        #barcode-reader video,
-        #barcode-reader canvas {
-            width: 100% !important;
-            height: 200px !important;
-            object-fit: cover;
-        }
-    </style>
-    <div class="section-banner pos-hero mb-2">
-        <div>
-            <h2>🛒 Point of Sale</h2>
-            <p class="pos-subtitle">Scan items, add quantities, and confirm payments faster.</p>
-        </div>
-        <div class="pos-kpis">
-            <div class="pos-kpi-card">
-                <div class="pos-kpi-label">Items</div>
-                <div class="pos-kpi-value" id="cart-items">0</div>
-            </div>
-            <div class="pos-kpi-card">
-                <div class="pos-kpi-label">Subtotal</div>
-                <div class="pos-kpi-value" id="kpi-subtotal">Rs. 0.00</div>
-            </div>
-            <div class="pos-kpi-card">
-                <div class="pos-kpi-label">Total</div>
-                <div class="pos-kpi-value" id="kpi-total">Rs. 0.00</div>
-            </div>
-            <a href="/sales/history/" class="action-chip">View Sales History</a>
-        </div>
+<div class="container-fluid py-2 px-3" id="pos-root">
+<style>
+/* ── Root ────────────────────────────────────────── */
+#pos-root {
+    font-size: 0.875rem;
+}
+
+/* ── Header ──────────────────────────────────────── */
+.pos-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.pos-header-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+.pos-header-sub {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+.pos-kpi-strip {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.pos-kpi-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(15,23,42,0.05);
+}
+.pos-kpi-pill strong {
+    font-weight: 700;
+}
+
+/* ── Search / Scan bar ───────────────────────────── */
+.pos-search-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+}
+.pos-search-bar .form-label-sm {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* ── Cart ────────────────────────────────────────── */
+.pos-cart {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+}
+.pos-cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    background: var(--surface-muted);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+}
+.pos-cart-header span:last-child {
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+.pos-cart-scroll {
+    max-height: calc(100vh - 330px);
+    min-height: 180px;
+    overflow-y: auto;
+}
+
+/* cart item row */
+.ci-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+}
+.ci-row:last-child {
+    border-bottom: none;
+}
+.ci-row:hover {
+    background: #fafbff;
+}
+.ci-name {
+    flex: 1;
+    min-width: 0;
+}
+.ci-name input {
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 4px 7px;
+    font-size: 0.875rem;
+    background: transparent;
+    transition: border-color 0.15s, background 0.15s;
+}
+.ci-name input:focus {
+    border-color: var(--brand);
+    background: #f5f5ff;
+    outline: none;
+}
+.ci-price {
+    width: 72px;
+    text-align: right;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+.ci-qty {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+}
+.btn-qty {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s, border-color 0.1s, color 0.1s;
+    color: var(--text);
+}
+.btn-qty:hover {
+    background: var(--surface-muted);
+    border-color: var(--brand);
+    color: var(--brand-dark);
+}
+.ci-qty input {
+    width: 44px;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px 4px;
+    font-size: 0.875rem;
+}
+.ci-total {
+    width: 76px;
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.88rem;
+    flex-shrink: 0;
+    color: var(--text);
+}
+.ci-remove {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.1s, color 0.1s;
+}
+.ci-remove:hover {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+/* empty state */
+.cart-empty {
+    text-align: center;
+    padding: 44px 20px;
+    color: var(--text-muted);
+}
+.cart-empty svg {
+    display: block;
+    margin: 0 auto 12px;
+    opacity: 0.25;
+}
+.cart-empty p { margin: 0; }
+.cart-empty .sub { font-size: 0.8rem; margin-top: 4px; color: var(--text-muted); }
+
+.pos-cart-footer {
+    padding: 9px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-muted);
+}
+
+/* ── Right sidebar ───────────────────────────────── */
+.pos-sidebar {
+    position: sticky;
+    top: 70px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.sidebar-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+}
+.sidebar-card .sc-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--surface-muted);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+.sidebar-card .sc-body {
+    padding: 14px;
+}
+
+/* customer badge */
+.customer-badge {
+    display: none;
+    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(14,165,233,0.08));
+    border: 1px solid rgba(99,102,241,0.22);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    font-size: 0.8rem;
+}
+.customer-badge.visible {
+    display: block;
+}
+.customer-badge .cbr {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3px;
+}
+.customer-badge .cbr:last-child { margin-bottom: 0; }
+.customer-badge .cbr span:first-child { color: var(--text-muted); }
+
+/* compact form labels */
+.pos-form label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+.pos-form .form-control,
+.pos-form .form-select {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+
+/* payment radio group */
+.pay-btns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+}
+.pay-btn-label {
+    display: block;
+    text-align: center;
+    padding: 7px 4px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    color: var(--text-muted);
+    user-select: none;
+}
+.pay-btn-label:hover {
+    border-color: var(--brand);
+    color: var(--brand-dark);
+}
+.btn-check:checked + .pay-btn-label {
+    border-color: var(--brand);
+    background: rgba(99,102,241,0.1);
+    color: var(--brand-dark);
+}
+
+/* totals */
+.totals-block {
+    padding: 12px 14px;
+    background: var(--surface-muted);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+.totals-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+.totals-row strong {
+    color: var(--text);
+}
+.totals-grand {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 2px dashed var(--border);
+}
+.totals-grand span:last-child {
+    color: var(--brand-dark);
+}
+
+/* confirm button */
+.btn-confirm {
+    width: 100%;
+    padding: 13px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 12px;
+    letter-spacing: 0.02em;
+}
+
+/* ── Camera ──────────────────────────────────────── */
+.camera-wrap {
+    margin-top: 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+#barcode-reader {
+    max-height: 180px;
+    overflow: hidden;
+}
+#barcode-reader video,
+#barcode-reader canvas {
+    width: 100% !important;
+    height: 180px !important;
+    object-fit: cover;
+}
+
+/* ── Toast notification ──────────────────────────── */
+#pos-toast {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 260px;
+    max-width: 380px;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: none;
+    animation: toastIn 0.2s ease;
+}
+@keyframes toastIn {
+    from { transform: translateX(30px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* ── Responsive tweaks ───────────────────────────── */
+@media (max-width: 991px) {
+    .pos-sidebar { position: static; }
+    .pos-cart-scroll { max-height: 50vh; }
+}
+</style>
+
+<!-- Toast -->
+<div id="pos-toast" role="alert"></div>
+
+<!-- Header -->
+<div class="pos-header">
+    <div>
+        <h1 class="pos-header-title">Point of Sale</h1>
+        <p class="pos-header-sub">Scan items, add quantities, and confirm payment.</p>
     </div>
-
-    <div id="pos-message" class="alert d-none" role="alert"></div>
-
-    <div class="row g-2 pos-layout">
-        <div class="col-lg-4">
-            <!-- Customer Selection -->
-            <div class="card mb-2">
-                <div class="card-header">
-                    <strong>Customer</strong>
-                </div>
-                <div class="card-body pos-card-body pos-form-compact">
-                    <div class="pos-section-compact">
-                        <label class="form-label">Customer Type</label>
-                        <select id="customer-type" class="form-select">
-                            <option value="regular" selected>Regular Customer</option>
-                            <option value="irregular">IR Customer</option>
-                        </select>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-12">
-                            <label class="form-label">Search by Name</label>
-                            <input id="customer-name" class="form-control" list="customer-names" placeholder="Start typing name...">
-                            <datalist id="customer-names">
-                                {% for customer in customers %}
-                                <option value="{{ customer.customer_name }}"></option>
-                                {% endfor %}
-                            </datalist>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Search by Mobile</label>
-                            <input id="customer-phone" class="form-control" list="customer-phones" placeholder="9XXXXXXXXX">
-                            <datalist id="customer-phones">
-                                {% for customer in customers %}
-                                <option value="{{ customer.phone_number }}"></option>
-                                {% if customer.secondary_phone_number %}
-                                <option value="{{ customer.secondary_phone_number }}"></option>
-                                {% endif %}
-                                {% endfor %}
-                            </datalist>
-                        </div>
-                    </div>
-
-                    <div id="irregular-customer-fields" class="row g-2 mt-2 d-none">
-                        <div class="col-12">
-                            <label class="form-label">IR Customer Name</label>
-                            <input id="ir-customer-name" class="form-control" placeholder="Enter name">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">IR Phone (optional)</label>
-                            <input id="ir-customer-phone" class="form-control" placeholder="Phone number">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">IR Address (optional)</label>
-                            <input id="ir-customer-address" class="form-control" placeholder="Address">
-                        </div>
-                    </div>
-
-                    <div class="mt-2">
-                        <div class="row g-2">
-                            <div class="col-12"><strong>Name:</strong> <span id="cust-name">—</span></div>
-                            <div class="col-12"><strong>Phone:</strong> <span id="cust-phone">—</span></div>
-                            <div class="col-12"><strong>Credit:</strong> <span id="cust-credit">—</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="pos-kpi-strip">
+        <div class="pos-kpi-pill">
+            <span class="text-muted">Items: </span><strong id="cart-items">0</strong>
         </div>
-        <div class="col-lg-8">
-            <!-- Products Table -->
-            <div class="card">
-        <div class="card-header">
-            <strong>Products</strong>
+        <div class="pos-kpi-pill">
+            <span class="text-muted">Subtotal: </span><strong id="kpi-subtotal">Rs. 0.00</strong>
         </div>
-        <div class="card-body pos-card-body pos-form-compact">
-            <div class="row g-2 mb-2">
-                <div class="col-md-6">
-                    <label class="form-label">Barcode</label>
-                    <div class="pos-barcode-inline">
-                        <select id="barcode-mode" class="form-select">
-                            <option value="manual" selected>Enter Barcode</option>
-                            <option value="camera">Scan Barcode</option>
-                            <option value="none">No Barcode</option>
-                        </select>
-                        <input id="barcode-input" class="form-control" placeholder="Enter barcode...">
+        <div class="pos-kpi-pill">
+            <span class="text-muted">Total: </span><strong id="kpi-total">Rs. 0.00</strong>
+        </div>
+        <a href="/sales/history/" class="action-chip">Sales History</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- ── Left column: scan + cart ─────────────────── -->
+    <div class="col-lg-7">
+
+        <!-- Search / Scan bar -->
+        <div class="pos-search-bar">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <span class="form-label-sm">Barcode</span>
+                    <div class="btn-group btn-group-sm mb-2 w-100" role="group">
+                        <input type="radio" class="btn-check" name="barcodeMode" id="bm-manual" value="manual" checked>
+                        <label class="btn btn-outline-secondary" for="bm-manual">Manual</label>
+                        <input type="radio" class="btn-check" name="barcodeMode" id="bm-camera" value="camera">
+                        <label class="btn btn-outline-secondary" for="bm-camera">Camera</label>
+                        <input type="radio" class="btn-check" name="barcodeMode" id="bm-none" value="none">
+                        <label class="btn btn-outline-secondary" for="bm-none">None</label>
                     </div>
-                    <div id="barcode-camera" class="border rounded p-2 d-none pos-barcode-camera">
-                        <div id="barcode-reader" style="width: 100%;"></div>
-                        <div class="d-flex align-items-center gap-2 mt-2">
+                    <input id="barcode-input" class="form-control" placeholder="Scan or type barcode, press Enter…" autocomplete="off">
+                    <div id="barcode-camera" class="camera-wrap d-none">
+                        <div id="barcode-reader"></div>
+                        <div class="d-flex align-items-center gap-2 p-2" style="background:var(--surface-muted);">
                             <button id="barcode-scan-toggle" class="btn btn-sm btn-outline-primary" type="button">Start Scan</button>
                             <span class="small text-muted">Allow camera permission to scan.</span>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Product Name</label>
-                    <input id="barcode-product-input" class="form-control" list="barcode-product-list" placeholder="Choose product...">
+                <div class="col-md-7">
+                    <span class="form-label-sm">Quick product add by name</span>
+                    <input id="barcode-product-input" class="form-control" list="barcode-product-list"
+                           placeholder="Search product name…" autocomplete="off">
                     <datalist id="barcode-product-list">
                         {% for product in products %}
                         <option value="{{ product.product_name }}"></option>
@@ -239,101 +469,232 @@
                     </datalist>
                 </div>
             </div>
-            <div class="table-responsive pos-table-wrapper">
-                <table class="table table-bordered pos-table" id="pos-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 45%;">Product Name</th>
-                            <th style="width: 15%;">Price</th>
-                            <th style="width: 15%;">Quantity</th>
-                            <th style="width: 15%;">Line Total</th>
-                            <th style="width: 10%;">Action</th>
-                        </tr>
-                    </thead>
+        </div>
+
+        <!-- Cart -->
+        <div class="pos-cart">
+            <div class="pos-cart-header">
+                <span>Cart</span>
+                <span id="cart-count-label">0 items</span>
+            </div>
+
+            <div class="pos-cart-scroll" id="cart-scroll">
+                <!-- Empty state -->
+                <div class="cart-empty" id="cart-empty">
+                    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 01-8 0"/>
+                    </svg>
+                    <p>Cart is empty</p>
+                    <p class="sub">Scan a barcode or search by name above</p>
+                </div>
+
+                <!-- Cart items injected here by JS -->
+                <div id="cart-items-list"></div>
+
+                <!-- Hidden compatibility table consumed by legacy datalists -->
+                <table class="d-none" aria-hidden="true">
                     <tbody id="pos-body">
                         <tr>
                             <td>
-                                <input class="form-control product-input" list="product-list" placeholder="Type product name...">
+                                <input class="form-control product-input" list="product-list" tabindex="-1">
                                 <datalist id="product-list">
                                     {% for product in products %}
                                     <option value="{{ product.product_name }}"></option>
                                     {% endfor %}
                                 </datalist>
                             </td>
-                            <td><input class="form-control price-input pos-input-muted" readonly></td>
-                            <td>
-                                <div class="input-group input-group-sm">
-                                    <button class="btn btn-outline-secondary qty-minus" type="button">-</button>
-                                    <input type="number" class="form-control qty-input" min="1" value="1">
-                                    <button class="btn btn-outline-secondary qty-plus" type="button">+</button>
-                                </div>
-                            </td>
-                            <td><input class="form-control total-input pos-input-muted" readonly></td>
-                            <td><button class="btn btn-sm btn-danger remove-row">×</button></td>
+                            <td><input class="form-control price-input" readonly tabindex="-1"></td>
+                            <td><input type="number" class="form-control qty-input" min="1" value="1" tabindex="-1"></td>
+                            <td><input class="form-control total-input" readonly tabindex="-1"></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="d-flex justify-content-start align-items-center mt-2">
-                <button id="add-row" class="btn btn-outline-secondary">+</button>
+            <div class="pos-cart-footer">
+                <button id="add-row" class="btn btn-sm btn-outline-secondary">+ Add item row</button>
             </div>
-
         </div>
     </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card pos-summary">
-                <div class="card-header">
-                    <strong>Checkout</strong>
-                    <span class="badge bg-info">Ready</span>
+
+    <!-- ── Right column: customer + checkout ─────────── -->
+    <div class="col-lg-5">
+        <div class="pos-sidebar">
+
+            <!-- Customer -->
+            <div class="sidebar-card">
+                <div class="sc-header">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Customer
                 </div>
-                <div class="card-body pos-card-body pos-form-compact">
-                    <label class="form-label">Payment Method</label>
-                    <select id="payment-method" class="form-select">
-                        <option value="cash" selected>Cash</option>
-                        <option value="card">QR</option>
-                        <option value="credit">Credit</option>
-                    </select>
-                    <div id="card-qr-wrapper" class="mt-3 d-none">
-                        <div class="small text-muted mb-2">Scan to pay</div>
-                        <img id="card-qr" src="{% static 'qr.png' %}" alt="QR payment" class="img-fluid" style="max-width: 220px;">
+                <div class="sc-body pos-form">
+                    <div class="mb-2">
+                        <label>Type</label>
+                        <select id="customer-type" class="form-select">
+                            <option value="regular" selected>Regular customer</option>
+                            <option value="irregular">Walk-in (IR)</option>
+                        </select>
                     </div>
 
-                    <div class="mt-2">
-                        <label class="form-label">Paid Amount</label>
-                        <input id="paid-amount" type="number" class="form-control" value="0">
-                        <small class="text-muted d-block mt-2">Change Due: <span id="change-amount">Rs. 0.00</span></small>
-                    </div>
-
-                    <div class="pos-divider"></div>
-
-                    <div class="d-flex justify-content-between">
-                        <span class="text-muted">Subtotal</span>
-                        <strong id="subtotal-amount">Rs. 0.00</strong>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mt-2">
-                        <span class="text-muted">Discount</span>
-                        <div class="d-flex gap-2 align-items-center">
-                            <input id="discount-amount" type="number" class="form-control form-control-sm" style="max-width: 110px;" placeholder="0">
-                            <input id="discount-percent" type="number" class="form-control form-control-sm" style="max-width: 80px;" placeholder="%">
+                    <!-- Regular fields -->
+                    <div id="regular-customer-fields">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label>Name</label>
+                                <input id="customer-name" class="form-control" list="customer-names" placeholder="Search name…">
+                                <datalist id="customer-names">
+                                    {% for customer in customers %}
+                                    <option value="{{ customer.customer_name }}"></option>
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div class="col-6">
+                                <label>Mobile</label>
+                                <input id="customer-phone" class="form-control" list="customer-phones" placeholder="9XXXXXXXXX">
+                                <datalist id="customer-phones">
+                                    {% for customer in customers %}
+                                    <option value="{{ customer.phone_number }}"></option>
+                                    {% if customer.secondary_phone_number %}
+                                    <option value="{{ customer.secondary_phone_number }}"></option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+                        <div class="customer-badge" id="customer-badge">
+                            <div class="cbr"><span>Name</span><strong id="cust-name">—</strong></div>
+                            <div class="cbr"><span>Phone</span><strong id="cust-phone">—</strong></div>
+                            <div class="cbr"><span>Credit balance</span><strong id="cust-credit" class="text-danger">—</strong></div>
                         </div>
                     </div>
-                    <div class="pos-divider"></div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">Grand Total</span>
-                        <strong id="grand-total">Rs. 0.00</strong>
-                    </div>
 
-                    <button id="confirm-sale" class="btn btn-success btn-lg mt-2 pos-action-btn">Confirm Payment</button>
+                    <!-- Walk-in fields -->
+                    <div id="irregular-customer-fields" class="d-none">
+                        <div class="mb-2">
+                            <label>Name <span class="text-muted fw-normal">(optional)</span></label>
+                            <input id="ir-customer-name" class="form-control" placeholder="Walk-in name">
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label>Phone <span class="text-muted fw-normal">(opt.)</span></label>
+                                <input id="ir-customer-phone" class="form-control" placeholder="Phone">
+                            </div>
+                            <div class="col-6">
+                                <label>Address <span class="text-muted fw-normal">(opt.)</span></label>
+                                <input id="ir-customer-address" class="form-control" placeholder="Address">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Payment + Totals -->
+            <div class="sidebar-card">
+                <div class="sc-header">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <rect x="1" y="4" width="22" height="16" rx="2"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                    Payment
+                </div>
+                <div class="sc-body pos-form">
+                    <!-- Payment method radio grid -->
+                    <label>Method</label>
+                    <div class="pay-btns mb-3">
+                        <div>
+                            <input type="radio" class="btn-check" name="payMethod" id="pm-cash" value="cash" checked>
+                            <label class="pay-btn-label" for="pm-cash">Cash</label>
+                        </div>
+                        <div>
+                            <input type="radio" class="btn-check" name="payMethod" id="pm-qr" value="card">
+                            <label class="pay-btn-label" for="pm-qr">QR</label>
+                        </div>
+                        <div>
+                            <input type="radio" class="btn-check" name="payMethod" id="pm-credit" value="credit">
+                            <label class="pay-btn-label" for="pm-credit">Credit</label>
+                        </div>
+                    </div>
+
+                    <!-- QR image -->
+                    <div id="card-qr-wrapper" class="text-center mb-3 d-none">
+                        <p class="small text-muted mb-2">Scan below to pay via QR</p>
+                        {% if request.tenant.qr_code %}
+                        <img id="card-qr" src="{{ request.tenant.qr_code.url }}" alt="QR code" class="img-fluid rounded" style="max-width:180px; border:1px solid var(--border);">
+                        {% else %}
+                        <div style="width:180px;height:180px;border:2px dashed #cbd5e1;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:#f8fafc;">
+                            <span class="text-muted" style="font-size:0.8rem;">No QR code configured</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Discount row -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-7">
+                            <label>Discount (Rs.)</label>
+                            <input id="discount-amount" type="number" class="form-control" placeholder="0" min="0">
+                        </div>
+                        <div class="col-5">
+                            <label>Discount (%)</label>
+                            <input id="discount-percent" type="number" class="form-control" placeholder="0" min="0" max="100">
+                        </div>
+                    </div>
+
+                    <!-- Paid amount -->
+                    <div class="mb-2">
+                        <label>Paid Amount</label>
+                        <input id="paid-amount" type="number" class="form-control" value="0" min="0">
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">Change due</span>
+                        <strong id="change-amount">Rs. 0.00</strong>
+                    </div>
+                </div>
+
+                <!-- Totals block -->
+                <div class="totals-block">
+                    <div class="totals-row">
+                        <span>Subtotal</span>
+                        <strong id="subtotal-amount">Rs. 0.00</strong>
+                    </div>
+                    <div class="totals-row" id="discount-row" style="display:none;">
+                        <span>Discount</span>
+                        <strong class="text-success" id="discount-display">Rs. 0.00</strong>
+                    </div>
+                    <div class="totals-grand">
+                        <span>Grand Total</span>
+                        <span id="grand-total">Rs. 0.00</span>
+                    </div>
+                </div>
+
+                <!-- Confirm button -->
+                <div class="p-3">
+                    <button id="confirm-sale" class="btn btn-success btn-confirm">Confirm Payment</button>
+                </div>
+            </div>
+
+        </div><!-- /pos-sidebar -->
     </div>
-</div>
+</div><!-- /row -->
+
+<!-- Hidden compat select (read by legacy JS helpers if any) -->
+<select id="payment-method" class="d-none" aria-hidden="true">
+    <option value="cash" selected>Cash</option>
+    <option value="card">QR</option>
+    <option value="credit">Credit</option>
+</select>
+
+</div><!-- /pos-root -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 <script>
+/* ═══════════════════════════════════════════════════
+   DATA  (injected from Django template)
+═══════════════════════════════════════════════════ */
 const customers = [
     {% for customer in customers %}
     {
@@ -357,577 +718,550 @@ const products = [
     {% endfor %}
 ];
 
-const nameInput = document.getElementById('customer-name');
-const phoneInput = document.getElementById('customer-phone');
-const customerType = document.getElementById('customer-type');
+/* ═══════════════════════════════════════════════════
+   CART STATE
+═══════════════════════════════════════════════════ */
+// cart = [{ product, qty }, ...]
+const cart = [];
+
+function getCartItem(productId) {
+    return cart.find(c => c.product.id === productId);
+}
+
+function addToCart(product, qty = 1) {
+    const existing = getCartItem(product.id);
+    if (existing) {
+        existing.qty += qty;
+        renderCartRow(product.id);
+    } else {
+        cart.push({ product, qty });
+        renderNewCartRow(product.id);
+    }
+    recalcTotals();
+}
+
+function removeFromCart(productId) {
+    const idx = cart.findIndex(c => c.product.id === productId);
+    if (idx >= 0) {
+        cart.splice(idx, 1);
+        const row = document.querySelector(`.ci-row[data-pid="${productId}"]`);
+        if (row) row.remove();
+    }
+    recalcTotals();
+}
+
+function updateQty(productId, qty) {
+    const item = getCartItem(productId);
+    if (!item) return;
+    item.qty = Math.max(1, parseInt(qty, 10) || 1);
+    const row = document.querySelector(`.ci-row[data-pid="${productId}"]`);
+    if (row) {
+        const qtyInput = row.querySelector('.ci-qty input');
+        if (qtyInput) qtyInput.value = item.qty;
+        const totalEl = row.querySelector('.ci-total');
+        if (totalEl) totalEl.textContent = `Rs. ${(item.product.price * item.qty).toFixed(2)}`;
+    }
+    recalcTotals();
+}
+
+/* ═══════════════════════════════════════════════════
+   CART RENDERING
+═══════════════════════════════════════════════════ */
+const cartList    = document.getElementById('cart-items-list');
+const cartEmpty   = document.getElementById('cart-empty');
+const cartCountLbl = document.getElementById('cart-count-label');
+
+function renderNewCartRow(productId) {
+    const item = getCartItem(productId);
+    if (!item) return;
+
+    const div = document.createElement('div');
+    div.className = 'ci-row';
+    div.dataset.pid = productId;
+    div.innerHTML = `
+        <div class="ci-name">
+            <input type="text" value="${escapeHtml(item.product.name)}" readonly
+                   title="${escapeHtml(item.product.name)}" class="product-input">
+        </div>
+        <div class="ci-price">Rs. ${item.product.price.toFixed(2)}</div>
+        <div class="ci-qty">
+            <button class="btn-qty qty-minus" type="button" title="Decrease">−</button>
+            <input type="number" class="qty-input" min="1" value="${item.qty}">
+            <button class="btn-qty qty-plus" type="button" title="Increase">+</button>
+        </div>
+        <div class="ci-total">Rs. ${(item.product.price * item.qty).toFixed(2)}</div>
+        <button class="ci-remove remove-row" type="button" title="Remove">×</button>
+    `;
+
+    div.querySelector('.qty-minus').addEventListener('click', () => {
+        updateQty(productId, item.qty - 1);
+    });
+    div.querySelector('.qty-plus').addEventListener('click', () => {
+        updateQty(productId, item.qty + 1);
+    });
+    div.querySelector('.qty-input').addEventListener('input', e => {
+        updateQty(productId, e.target.value);
+    });
+    div.querySelector('.remove-row').addEventListener('click', () => {
+        removeFromCart(productId);
+    });
+
+    cartList.appendChild(div);
+    updateCartEmptyState();
+}
+
+function renderCartRow(productId) {
+    const item = getCartItem(productId);
+    if (!item) return;
+    const row = document.querySelector(`.ci-row[data-pid="${productId}"]`);
+    if (!row) return;
+    row.querySelector('.qty-input').value = item.qty;
+    row.querySelector('.ci-total').textContent = `Rs. ${(item.product.price * item.qty).toFixed(2)}`;
+}
+
+function updateCartEmptyState() {
+    const hasItems = cart.length > 0;
+    cartEmpty.style.display = hasItems ? 'none' : '';
+    cartList.style.display  = hasItems ? '' : 'none';
+    const totalQty = cart.reduce((s, c) => s + c.qty, 0);
+    cartCountLbl.textContent = `${cart.length} item${cart.length !== 1 ? 's' : ''}`;
+    document.getElementById('cart-items').textContent = totalQty;
+}
+
+/* Add item row (manual blank row) — keeps legacy compat */
+document.getElementById('add-row').addEventListener('click', e => {
+    e.preventDefault();
+    // Add a blank "placeholder" row that lets user type to find product
+    addManualRow();
+});
+
+function addManualRow() {
+    const div = document.createElement('div');
+    div.className = 'ci-row manual-row';
+    div.innerHTML = `
+        <div class="ci-name" style="flex:1">
+            <input type="text" class="product-input form-control" list="product-list-inline"
+                   placeholder="Type product name…" autocomplete="off" style="border:1px solid var(--border); background:var(--surface-muted);">
+            <datalist id="product-list-inline">
+                ${products.map(p => `<option value="${escapeHtml(p.name)}"></option>`).join('')}
+            </datalist>
+        </div>
+        <button class="ci-remove" type="button" title="Remove">×</button>
+    `;
+
+    const nameInput = div.querySelector('.product-input');
+    const resolveProduct = () => {
+        const val = nameInput.value.trim();
+        const product = products.find(p => p.name.toLowerCase() === val.toLowerCase());
+        if (product) {
+            div.remove();
+            addToCart(product, 1);
+        }
+    };
+    nameInput.addEventListener('change', resolveProduct);
+    nameInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); resolveProduct(); }
+    });
+    div.querySelector('.ci-remove').addEventListener('click', () => div.remove());
+
+    cartList.appendChild(div);
+    cartEmpty.style.display = 'none';
+    cartList.style.display  = '';
+    nameInput.focus();
+}
+
+/* ═══════════════════════════════════════════════════
+   TOTALS
+═══════════════════════════════════════════════════ */
+function recalcTotals() {
+    const subtotal = cart.reduce((s, c) => s + c.product.price * c.qty, 0);
+
+    const discAmtInput  = document.getElementById('discount-amount');
+    const discPctInput  = document.getElementById('discount-percent');
+    let discAmt = parseFloat(discAmtInput.value || '0');
+    const discPct = parseFloat(discPctInput.value || '0');
+    if (discPct > 0) {
+        discAmt = (subtotal * discPct) / 100;
+        discAmtInput.value = discAmt.toFixed(2);
+    }
+    const discountRow = document.getElementById('discount-row');
+    if (discAmt > 0) {
+        discountRow.style.display = '';
+        document.getElementById('discount-display').textContent = `− Rs. ${discAmt.toFixed(2)}`;
+    } else {
+        discountRow.style.display = 'none';
+    }
+
+    const total = Math.max(subtotal - discAmt, 0);
+
+    document.getElementById('subtotal-amount').textContent = `Rs. ${subtotal.toFixed(2)}`;
+    document.getElementById('grand-total').textContent     = `Rs. ${total.toFixed(2)}`;
+    document.getElementById('kpi-subtotal').textContent    = `Rs. ${subtotal.toFixed(2)}`;
+    document.getElementById('kpi-total').textContent       = `Rs. ${total.toFixed(2)}`;
+
+    const paidInput = document.getElementById('paid-amount');
+    const payMethod = getPaymentMethod();
+    if (!paidInput.dataset.touched && payMethod !== 'credit') {
+        paidInput.value = total.toFixed(2);
+    }
+    const paid = parseFloat(paidInput.value || '0');
+    document.getElementById('change-amount').textContent = `Rs. ${Math.max(paid - total, 0).toFixed(2)}`;
+
+    updateCartEmptyState();
+}
+
+/* ═══════════════════════════════════════════════════
+   PAYMENT METHOD
+═══════════════════════════════════════════════════ */
+function getPaymentMethod() {
+    const checked = document.querySelector('input[name="payMethod"]:checked');
+    return checked ? checked.value : 'cash';
+}
+
+function syncPaymentControls() {
+    const method    = getPaymentMethod();
+    const paidInput = document.getElementById('paid-amount');
+    const qrWrapper = document.getElementById('card-qr-wrapper');
+
+    // Keep hidden compat select in sync
+    const compatSel = document.getElementById('payment-method');
+    if (compatSel) compatSel.value = method;
+
+    if (method === 'credit') {
+        paidInput.value = '0';
+        paidInput.disabled = true;
+        paidInput.dataset.touched = 'true';
+    } else {
+        paidInput.disabled = false;
+        if (!paidInput.dataset.touched) recalcTotals();
+    }
+
+    qrWrapper.classList.toggle('d-none', method !== 'card');
+}
+
+document.querySelectorAll('input[name="payMethod"]').forEach(r => {
+    r.addEventListener('change', () => {
+        syncPaymentControls();
+        recalcTotals();
+    });
+});
+
+document.getElementById('paid-amount').addEventListener('input', e => {
+    e.target.dataset.touched = 'true';
+    recalcTotals();
+});
+document.getElementById('discount-amount').addEventListener('input', () => {
+    document.getElementById('discount-percent').value = '';
+    recalcTotals();
+});
+document.getElementById('discount-percent').addEventListener('input', () => {
+    recalcTotals();
+});
+
+/* ═══════════════════════════════════════════════════
+   CUSTOMER
+═══════════════════════════════════════════════════ */
+const nameInput       = document.getElementById('customer-name');
+const phoneInput      = document.getElementById('customer-phone');
+const customerType    = document.getElementById('customer-type');
 const irregularFields = document.getElementById('irregular-customer-fields');
-const irNameInput = document.getElementById('ir-customer-name');
-const irPhoneInput = document.getElementById('ir-customer-phone');
-const irAddressInput = document.getElementById('ir-customer-address');
+const regularFields   = document.getElementById('regular-customer-fields');
+const irNameInput     = document.getElementById('ir-customer-name');
+const irPhoneInput    = document.getElementById('ir-customer-phone');
+const irAddressInput  = document.getElementById('ir-customer-address');
+const customerBadge   = document.getElementById('customer-badge');
 
 function setCustomerDetails(customer) {
     if (!customer) {
-        document.getElementById('cust-name').textContent = '—';
-        document.getElementById('cust-phone').textContent = '—';
+        document.getElementById('cust-name').textContent   = '—';
+        document.getElementById('cust-phone').textContent  = '—';
         document.getElementById('cust-credit').textContent = '—';
+        customerBadge.classList.remove('visible');
         return;
     }
-    document.getElementById('cust-name').textContent = customer.name;
-    document.getElementById('cust-phone').textContent = customer.phone;
+    document.getElementById('cust-name').textContent   = customer.name;
+    document.getElementById('cust-phone').textContent  = customer.phone;
     document.getElementById('cust-credit').textContent = `Rs. ${customer.credit}`;
+    customerBadge.classList.add('visible');
 }
 
-if (customerType) {
-    customerType.addEventListener('change', () => {
-        const isIrregular = customerType.value === 'irregular';
-        irregularFields.classList.toggle('d-none', !isIrregular);
-        nameInput.disabled = isIrregular;
-        phoneInput.disabled = isIrregular;
-        if (isIrregular) {
-            nameInput.value = '';
-            phoneInput.value = '';
-            setCustomerDetails(null);
-        } else {
-            irNameInput.value = '';
-            irPhoneInput.value = '';
-            irAddressInput.value = '';
-        }
-    });
-}
+customerType.addEventListener('change', () => {
+    const isIR = customerType.value === 'irregular';
+    irregularFields.classList.toggle('d-none', !isIR);
+    regularFields.classList.toggle('d-none', isIR);
+    if (isIR) {
+        nameInput.value = '';
+        phoneInput.value = '';
+        setCustomerDetails(null);
+    } else {
+        irNameInput.value    = '';
+        irPhoneInput.value   = '';
+        irAddressInput.value = '';
+    }
+});
 
 nameInput.addEventListener('input', () => {
-    const customer = customers.find(c => c.name.toLowerCase() === nameInput.value.toLowerCase());
-    if (customer) {
-        phoneInput.value = customer.phone;
-        setCustomerDetails(customer);
-    }
+    const c = customers.find(c => c.name.toLowerCase() === nameInput.value.toLowerCase());
+    if (c) { phoneInput.value = c.phone; setCustomerDetails(c); }
 });
-
 phoneInput.addEventListener('input', () => {
-    const customer = customers.find(
-        c => c.phone === phoneInput.value || c.secondary_phone === phoneInput.value
-    );
-    if (customer) {
-        nameInput.value = customer.name;
-        setCustomerDetails(customer);
-    }
+    const c = customers.find(c => c.phone === phoneInput.value || c.secondary_phone === phoneInput.value);
+    if (c) { nameInput.value = c.name; setCustomerDetails(c); }
 });
 
-function recalcRow(row) {
-    const nameField = row.querySelector('.product-input');
-    const priceField = row.querySelector('.price-input');
-    const qtyField = row.querySelector('.qty-input');
-    const totalField = row.querySelector('.total-input');
-
-    const product = products.find(p => p.name.toLowerCase() === nameField.value.toLowerCase());
-    if (product) {
-        priceField.value = product.price;
-    }
-
-    const price = parseFloat(priceField.value || '0');
-    const qty = Math.max(1, parseInt(qtyField.value || '1', 10));
-    totalField.value = (price * qty).toFixed(2);
-}
-
-function recalcGrandTotal() {
-    let subtotal = 0;
-    document.querySelectorAll('.total-input').forEach(input => {
-        subtotal += parseFloat(input.value || '0');
-    });
-    const discountAmountInput = document.getElementById('discount-amount');
-    const discountPercentInput = document.getElementById('discount-percent');
-    let discountAmount = parseFloat(discountAmountInput.value || '0');
-    const discountPercent = parseFloat(discountPercentInput.value || '0');
-    if (discountPercent > 0) {
-        discountAmount = (subtotal * discountPercent) / 100;
-        discountAmountInput.value = discountAmount.toFixed(2);
-    }
-    const taxable = Math.max(subtotal - discountAmount, 0);
-    const total = taxable;
-
-    document.getElementById('subtotal-amount').textContent = `Rs. ${subtotal.toFixed(2)}`;
-    document.getElementById('grand-total').textContent = `Rs. ${total.toFixed(2)}`;
-
-    const itemCount = Array.from(document.querySelectorAll('#pos-body tr')).reduce((sum, row) => {
-        const nameValue = row.querySelector('.product-input').value.trim();
-        if (!nameValue) {
-            return sum;
-        }
-        const qtyValue = parseInt(row.querySelector('.qty-input').value || '0', 10);
-        return sum + (Number.isNaN(qtyValue) ? 0 : qtyValue);
-    }, 0);
-
-    const cartItemsEl = document.getElementById('cart-items');
-    const kpiSubtotalEl = document.getElementById('kpi-subtotal');
-    const kpiTotalEl = document.getElementById('kpi-total');
-    if (cartItemsEl) {
-        cartItemsEl.textContent = itemCount.toString();
-    }
-    if (kpiSubtotalEl) {
-        kpiSubtotalEl.textContent = `Rs. ${subtotal.toFixed(2)}`;
-    }
-    if (kpiTotalEl) {
-        kpiTotalEl.textContent = `Rs. ${total.toFixed(2)}`;
-    }
-
-    const paidInput = document.getElementById('paid-amount');
-    const methodSelect = document.getElementById('payment-method');
-    if (paidInput && methodSelect && !paidInput.dataset.touched && methodSelect.value !== 'credit') {
-        paidInput.value = total.toFixed(2);
-    }
-    const paidValue = parseFloat(paidInput.value || '0');
-    const changeDue = Math.max(paidValue - total, 0);
-    document.getElementById('change-amount').textContent = `Rs. ${changeDue.toFixed(2)}`;
-}
-
-function addProductToPos(product) {
-    const rows = Array.from(document.querySelectorAll('#pos-body tr'));
-    const existingRow = rows.find(row => row.querySelector('.product-input').value.trim().toLowerCase() === product.name.toLowerCase());
-    if (existingRow) {
-        const qtyField = existingRow.querySelector('.qty-input');
-        qtyField.value = Math.max(1, parseInt(qtyField.value || '1', 10) + 1);
-        recalcRow(existingRow);
-        recalcGrandTotal();
-        return;
-    }
-    let targetRow = rows.find(row => !row.querySelector('.product-input').value.trim());
-    if (!targetRow) {
-        const tbody = document.getElementById('pos-body');
-        const newRow = tbody.children[0].cloneNode(true);
-        newRow.querySelectorAll('input').forEach(input => input.value = '');
-        newRow.querySelector('.qty-input').value = 1;
-        attachRowEvents(newRow);
-        tbody.appendChild(newRow);
-        targetRow = newRow;
-    }
-
-    targetRow.querySelector('.product-input').value = product.name;
-    targetRow.querySelector('.price-input').value = product.price;
-    targetRow.querySelector('.qty-input').value = 1;
-    recalcRow(targetRow);
-    recalcGrandTotal();
-}
-
-function attachRowEvents(row) {
-    row.querySelector('.product-input').addEventListener('input', () => {
-        recalcRow(row);
-        recalcGrandTotal();
-    });
-    row.querySelector('.qty-input').addEventListener('input', () => {
-        recalcRow(row);
-        recalcGrandTotal();
-    });
-    row.querySelector('.qty-plus').addEventListener('click', () => {
-        const qtyField = row.querySelector('.qty-input');
-        qtyField.value = Math.max(1, parseInt(qtyField.value || '1', 10) + 1);
-        recalcRow(row);
-        recalcGrandTotal();
-    });
-    row.querySelector('.qty-minus').addEventListener('click', () => {
-        const qtyField = row.querySelector('.qty-input');
-        qtyField.value = Math.max(1, parseInt(qtyField.value || '1', 10) - 1);
-        recalcRow(row);
-        recalcGrandTotal();
-    });
-    row.querySelector('.remove-row').addEventListener('click', (e) => {
-        e.preventDefault();
-        const rows = document.querySelectorAll('#pos-body tr');
-        if (rows.length > 1) {
-            row.remove();
-        } else {
-            row.querySelector('.product-input').value = '';
-            row.querySelector('.price-input').value = '';
-            row.querySelector('.qty-input').value = 1;
-            row.querySelector('.total-input').value = '';
-        }
-        recalcGrandTotal();
-    });
-}
-
-document.querySelectorAll('#pos-body tr').forEach(attachRowEvents);
-
-const barcodeInput = document.getElementById('barcode-input');
-const barcodeMode = document.getElementById('barcode-mode');
+/* ═══════════════════════════════════════════════════
+   BARCODE / SCANNER
+═══════════════════════════════════════════════════ */
+const barcodeInput  = document.getElementById('barcode-input');
 const cameraWrapper = document.getElementById('barcode-camera');
-const scanToggle = document.getElementById('barcode-scan-toggle');
-let scanning = false;
-let lastCode = null;
-let sameCount = 0;
-let lastScanTime = 0;
-const REQUIRED_MATCHES = 3;
-const SCAN_COOLDOWN_MS = 1500;
-let audioCtx = null;
+const scanToggle    = document.getElementById('barcode-scan-toggle');
+
+let scanning      = false;
+let lastCode      = null;
+let sameCount     = 0;
+let lastScanTime  = 0;
+const MATCH_NEED  = 3;
+const COOLDOWN_MS = 1500;
+let audioCtx      = null;
 
 function initAudio() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
 }
-
 function beepSuccess() {
     try {
         initAudio();
-        if (!audioCtx) {
-            return;
-        }
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.type = 'sine';
-        oscillator.frequency.value = 880;
-        gainNode.gain.value = 0.05;
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.12);
-    } catch (err) {
-        // Ignore audio errors (autoplay restrictions).
-    }
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        gain.gain.value = 0.05;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.12);
+    } catch (_) {}
 }
 
 function stopScan() {
     if (scanning && window.Quagga) {
         Quagga.stop();
         scanning = false;
-        if (scanToggle) {
-            scanToggle.textContent = 'Start Scan';
-        }
+        scanToggle.textContent = 'Start Scan';
     }
 }
-
 function startScan() {
-    if (!window.Quagga) {
-        return;
-    }
-    lastCode = null;
-    sameCount = 0;
+    if (!window.Quagga) return;
+    lastCode = null; sameCount = 0;
     Quagga.init({
         inputStream: {
-            name: 'Live',
-            type: 'LiveStream',
+            name: 'Live', type: 'LiveStream',
             target: document.querySelector('#barcode-reader'),
             constraints: { facingMode: 'environment' },
         },
-        decoder: {
-            readers: ['code_128_reader', 'ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader']
-        },
+        decoder: { readers: ['code_128_reader','ean_reader','ean_8_reader','upc_reader','upc_e_reader'] },
         locate: false,
-    }, (err) => {
-        if (err) {
-            alert('Unable to access camera for barcode scanning.');
-            return;
-        }
+    }, err => {
+        if (err) { showToast('Unable to access camera.', 'warning'); return; }
         Quagga.start();
         scanning = true;
-        if (scanToggle) {
-            scanToggle.textContent = 'Stop Scan';
-        }
+        scanToggle.textContent = 'Stop Scan';
     });
 }
 
-function showManualInput() {
-    stopScan();
-    if (cameraWrapper) {
+function applyBarcodeMode(mode) {
+    if (mode === 'camera') {
+        barcodeInput.classList.add('d-none');
+        cameraWrapper.classList.remove('d-none');
+        initAudio();
+        startScan();
+    } else if (mode === 'none') {
+        stopScan();
+        barcodeInput.classList.add('d-none');
         cameraWrapper.classList.add('d-none');
-    }
-    if (barcodeInput) {
+    } else {
+        stopScan();
         barcodeInput.classList.remove('d-none');
-        barcodeInput.placeholder = 'Enter barcode...';
+        cameraWrapper.classList.add('d-none');
+        barcodeInput.placeholder = 'Scan or type barcode, press Enter…';
         barcodeInput.focus();
     }
 }
 
-function showScanner() {
-    initAudio();
-    if (barcodeInput) {
-        barcodeInput.classList.add('d-none');
-    }
-    if (cameraWrapper) {
-        cameraWrapper.classList.remove('d-none');
-    }
-    startScan();
-}
+document.querySelectorAll('input[name="barcodeMode"]').forEach(r => {
+    r.addEventListener('change', () => applyBarcodeMode(r.value));
+});
 
-function showNone() {
-    stopScan();
-    if (cameraWrapper) {
-        cameraWrapper.classList.add('d-none');
-    }
-    if (barcodeInput) {
-        barcodeInput.value = '';
-        barcodeInput.classList.add('d-none');
-    }
-}
-
-if (scanToggle) {
-    scanToggle.addEventListener('click', () => {
-        if (scanning) {
-            stopScan();
-        } else {
-            startScan();
-        }
-    });
-}
-
-if (barcodeMode) {
-    barcodeMode.addEventListener('change', () => {
-        if (barcodeMode.value === 'camera') {
-            showScanner();
-        } else if (barcodeMode.value === 'none') {
-            showNone();
-        } else {
-            showManualInput();
-        }
-    });
-}
+scanToggle.addEventListener('click', () => {
+    scanning ? stopScan() : startScan();
+});
 
 if (window.Quagga) {
-    Quagga.onDetected((data) => {
-        if (!data || !data.codeResult || !data.codeResult.code) {
-            return;
-        }
+    Quagga.onDetected(data => {
+        if (!data?.codeResult?.code) return;
         const code = data.codeResult.code;
-        if (code === lastCode) {
-            sameCount += 1;
-        } else {
-            lastCode = code;
-            sameCount = 1;
-        }
-        if (sameCount >= REQUIRED_MATCHES) {
+        if (code === lastCode) { sameCount++; } else { lastCode = code; sameCount = 1; }
+        if (sameCount >= MATCH_NEED) {
             const now = Date.now();
-            if (now - lastScanTime < SCAN_COOLDOWN_MS) {
-                return;
-            }
+            if (now - lastScanTime < COOLDOWN_MS) return;
             lastScanTime = now;
             const product = products.find(p => p.barcode && p.barcode.toLowerCase() === code.toLowerCase());
             if (product) {
-                addProductToPos(product);
+                addToCart(product, 1);
                 beepSuccess();
-                showMessage('Product added from scan.', 'success');
+                showToast(`Added: ${product.name}`, 'success');
             } else {
-                showMessage('No product found for that barcode.', 'warning');
+                showToast('No product found for that barcode.', 'warning');
             }
         }
     });
 }
 
-if (barcodeInput) {
-    barcodeInput.addEventListener('keydown', (e) => {
-        if (e.key !== 'Enter') {
-            return;
-        }
-        if (barcodeMode && barcodeMode.value !== 'manual') {
-            return;
-        }
-        e.preventDefault();
-        const barcodeValue = barcodeInput.value.trim();
-        if (!barcodeValue) {
-            return;
-        }
-        const product = products.find(p => p.barcode && p.barcode.toLowerCase() === barcodeValue.toLowerCase());
-        if (product) {
-            addProductToPos(product);
-            barcodeInput.value = '';
-        } else {
-            showMessage('No product found for that barcode.', 'warning');
-        }
-    });
-}
-
-if (barcodeMode) {
-    if (barcodeMode.value === 'camera') {
-        showScanner();
-    } else if (barcodeMode.value === 'none') {
-        showNone();
+barcodeInput.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const val = barcodeInput.value.trim();
+    if (!val) return;
+    const product = products.find(p => p.barcode && p.barcode.toLowerCase() === val.toLowerCase());
+    if (product) {
+        addToCart(product, 1);
+        barcodeInput.value = '';
     } else {
-        showManualInput();
+        showToast('No product found for that barcode.', 'warning');
     }
-}
+});
 
 const barcodeProductInput = document.getElementById('barcode-product-input');
-if (barcodeProductInput) {
-    const addByName = () => {
-        const nameValue = barcodeProductInput.value.trim();
-        if (!nameValue) {
-            return;
-        }
-        const product = products.find(p => p.name.toLowerCase() === nameValue.toLowerCase());
-        if (product) {
-            addProductToPos(product);
-            barcodeProductInput.value = '';
-        } else {
-            showMessage('No product found with that name.', 'warning');
-        }
-    };
-    barcodeProductInput.addEventListener('change', addByName);
-    barcodeProductInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addByName();
-        }
-    });
-}
-
-document.getElementById('add-row').addEventListener('click', (e) => {
-    e.preventDefault();
-    const tbody = document.getElementById('pos-body');
-    const newRow = tbody.children[0].cloneNode(true);
-    newRow.querySelectorAll('input').forEach(input => input.value = '');
-    newRow.querySelector('.qty-input').value = 1;
-    attachRowEvents(newRow);
-    tbody.appendChild(newRow);
+barcodeProductInput.addEventListener('change', resolveByName);
+barcodeProductInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); resolveByName(); }
 });
-
-document.getElementById('discount-amount').addEventListener('input', () => {
-    document.getElementById('discount-percent').value = '';
-    recalcGrandTotal();
-});
-
-document.getElementById('discount-percent').addEventListener('input', () => {
-    recalcGrandTotal();
-});
-
-document.getElementById('paid-amount').addEventListener('input', (e) => {
-    e.target.dataset.touched = 'true';
-    recalcGrandTotal();
-});
-
-function syncPaymentMethodControls() {
-    const methodSelect = document.getElementById('payment-method');
-    const paidInput = document.getElementById('paid-amount');
-    const qrWrapper = document.getElementById('card-qr-wrapper');
-    if (!methodSelect || !paidInput) {
-        return;
-    }
-
-    if (methodSelect.value === 'credit') {
-        paidInput.value = 0;
-        paidInput.disabled = true;
-        paidInput.dataset.touched = 'true';
-        qrWrapper?.classList.add('d-none');
+function resolveByName() {
+    const val = barcodeProductInput.value.trim();
+    if (!val) return;
+    const product = products.find(p => p.name.toLowerCase() === val.toLowerCase());
+    if (product) {
+        addToCart(product, 1);
+        barcodeProductInput.value = '';
     } else {
-        paidInput.disabled = false;
-        if (!paidInput.dataset.touched) {
-            recalcGrandTotal();
-        }
-        if (methodSelect.value === 'card') {
-            qrWrapper?.classList.remove('d-none');
-        } else {
-            qrWrapper?.classList.add('d-none');
-        }
+        showToast('No product found with that name.', 'warning');
     }
 }
 
-document.getElementById('payment-method').addEventListener('change', () => {
-    syncPaymentMethodControls();
-});
+// Init barcode mode on load
+applyBarcodeMode('manual');
 
-document.getElementById('confirm-sale').addEventListener('click', async (e) => {
+/* ═══════════════════════════════════════════════════
+   CONFIRM SALE
+═══════════════════════════════════════════════════ */
+document.getElementById('confirm-sale').addEventListener('click', async e => {
     e.preventDefault();
-    const confirmButton = document.getElementById('confirm-sale');
-    confirmButton.disabled = true;
-    const rows = Array.from(document.querySelectorAll('#pos-body tr'));
-    const items = [];
+    const btn = document.getElementById('confirm-sale');
+    btn.disabled = true;
 
-    rows.forEach(row => {
-        const name = row.querySelector('.product-input').value.trim();
-        const qty = parseInt(row.querySelector('.qty-input').value || '1', 10);
-        const product = products.find(p => p.name.toLowerCase() === name.toLowerCase());
-        if (product && qty > 0) {
-            items.push({
-                product_id: product.id,
-                quantity: qty,
-                price: product.price,
-                line_total: product.price * qty,
-            });
-        }
-    });
+    const items = cart
+        .filter(c => c.qty > 0)
+        .map(c => ({
+            product_id: c.product.id,
+            quantity:   c.qty,
+            price:      c.product.price,
+            line_total: c.product.price * c.qty,
+        }));
 
     if (!items.length) {
-        showMessage('Add at least one product.', 'warning');
-        confirmButton.disabled = false;
+        showToast('Add at least one product to the cart.', 'warning');
+        btn.disabled = false;
         return;
     }
 
-    const subtotal = items.reduce((sum, i) => sum + i.line_total, 0);
-    const discountAmount = parseFloat(document.getElementById('discount-amount').value || '0');
-    const discountPercent = parseFloat(document.getElementById('discount-percent').value || '0');
-    const discountApplied = discountPercent > 0 ? (subtotal * discountPercent) / 100 : discountAmount;
-    const taxable = Math.max(subtotal - discountApplied, 0);
-    const tax = 0;
-    const total = taxable;
-    const paymentMethod = document.getElementById('payment-method').value;
-    const paidAmount = paymentMethod === 'credit'
+    const subtotal     = items.reduce((s, i) => s + i.line_total, 0);
+    const discAmt      = parseFloat(document.getElementById('discount-amount').value || '0');
+    const discPct      = parseFloat(document.getElementById('discount-percent').value || '0');
+    const discApplied  = discPct > 0 ? (subtotal * discPct) / 100 : discAmt;
+    const total        = Math.max(subtotal - discApplied, 0);
+    const payMethod    = getPaymentMethod();
+    const paidAmount   = payMethod === 'credit'
         ? 0
         : parseFloat(document.getElementById('paid-amount').value || '0');
 
-    const isIrregular = customerType && customerType.value === 'irregular';
+    const isIR         = customerType.value === 'irregular';
+    const custNameEl   = document.getElementById('cust-name');
+    const custPhoneEl  = document.getElementById('cust-phone');
+
     const payload = {
-        customer_type: isIrregular ? 'irregular' : 'regular',
-        customer_name: !isIrregular && document.getElementById('cust-name').textContent !== '—'
-            ? document.getElementById('cust-name').textContent
-            : null,
-        customer_phone: !isIrregular && document.getElementById('cust-phone').textContent !== '—'
-            ? document.getElementById('cust-phone').textContent
-            : null,
-        ir_customer_name: isIrregular ? (irNameInput.value || null) : null,
-        ir_customer_phone: isIrregular ? (irPhoneInput.value || '') : null,
-        ir_customer_address: isIrregular ? (irAddressInput.value || '') : null,
+        customer_type:      isIR ? 'irregular' : 'regular',
+        customer_name:      !isIR && custNameEl.textContent !== '—' ? custNameEl.textContent : null,
+        customer_phone:     !isIR && custPhoneEl.textContent !== '—' ? custPhoneEl.textContent : null,
+        ir_customer_name:   isIR ? (irNameInput.value || null) : null,
+        ir_customer_phone:  isIR ? (irPhoneInput.value || '') : null,
+        ir_customer_address: isIR ? (irAddressInput.value || '') : null,
         items,
         subtotal,
-        tax,
+        tax:              0,
         total,
-        paid_amount: paidAmount,
-        payment_method: paymentMethod,
-        discount: discountApplied,
-        discount_percent: discountPercent > 0 ? discountPercent : 0,
+        paid_amount:      paidAmount,
+        payment_method:   payMethod,
+        discount:         discApplied,
+        discount_percent: discPct > 0 ? discPct : 0,
     };
 
-    const response = await fetch('/sales/api/create-sale/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify(payload)
-    });
-
-    const result = await response.json();
-    if (result.success) {
-        showMessage(`Sale saved. Receipt: ${result.receipt_number}`, 'success');
-        window.location.href = `/sales/receipt/${result.sale_number}/`;
-    } else {
-        showMessage(result.error || 'Failed to save sale', 'danger');
-        confirmButton.disabled = false;
+    try {
+        const resp = await fetch('/sales/api/create-sale/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify(payload),
+        });
+        const result = await resp.json();
+        if (result.success) {
+            showToast(`Sale saved — Receipt: ${result.receipt_number}`, 'success');
+            window.location.href = `/sales/receipt/${result.sale_number}/`;
+        } else {
+            showToast(result.error || 'Failed to save sale.', 'danger');
+            btn.disabled = false;
+        }
+    } catch (err) {
+        showToast('Network error. Please try again.', 'danger');
+        btn.disabled = false;
     }
 });
 
-syncPaymentMethodControls();
-recalcGrandTotal();
-
-function showMessage(message, level) {
-    const banner = document.getElementById('pos-message');
-    banner.className = `alert alert-${level}`;
-    banner.textContent = message;
-    banner.classList.remove('d-none');
-    window.setTimeout(() => banner.classList.add('d-none'), 3500);
+/* ═══════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════ */
+let toastTimer = null;
+function showToast(message, level = 'info') {
+    const el = document.getElementById('pos-toast');
+    el.className = `alert alert-${level}`;
+    el.textContent = message;
+    el.style.display = 'block';
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.style.display = 'none'; }, 3500);
 }
 
 function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+    if (!document.cookie) return null;
+    for (const cookie of document.cookie.split(';')) {
+        const [k, v] = cookie.trim().split('=');
+        if (k === name) return decodeURIComponent(v);
     }
-    return cookieValue;
+    return null;
 }
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/* ── INIT ── */
+syncPaymentControls();
+recalcTotals();
+updateCartEmptyState();
 </script>
 {% endblock %}

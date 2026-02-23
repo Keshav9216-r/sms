@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Edit Staff Account{% endblock %}
+{% block content %}
+<div class="container" style="max-width:600px;">
+<style>
+.form-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px; box-shadow:0 2px 8px rgba(15,23,42,0.05); }
+.field-lbl { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin-bottom:4px; display:block; }
+.form-control, .form-select { font-size:0.88rem; padding:7px 11px; border-radius:8px; }
+.access-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.access-item { display:flex; align-items:center; gap:8px; padding:10px 14px; border:1.5px solid var(--border); border-radius:10px; cursor:pointer; transition:border-color 0.15s, background 0.15s; font-size:0.85rem; }
+.access-item input[type=checkbox] { width:16px; height:16px; accent-color:var(--brand); flex-shrink:0; }
+.access-item:has(input:checked) { border-color:var(--brand); background:rgba(99,102,241,0.06); }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 style="font-size:1.25rem; font-weight:700; margin:0;">Edit Staff: {{ target_user.username }}</h1>
+    <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary btn-sm">Back</a>
+</div>
+
+{% if messages %}
+<div class="alert alert-danger">{% for m in messages %}{{ m }}{% endfor %}</div>
+{% endif %}
+
+<div class="form-card">
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="field-lbl">Username</label>
+            <input type="text" class="form-control" value="{{ target_user.username }}" disabled>
+        </div>
+
+        <div class="mb-3">
+            <label class="field-lbl">Role</label>
+            <select name="role" class="form-select">
+                <option value="cashier" {% if target_profile.role == 'cashier' %}selected{% endif %}>Cashier</option>
+                <option value="staff"   {% if target_profile.role == 'staff' %}selected{% endif %}>Staff</option>
+                <option value="manager" {% if target_profile.role == 'manager' %}selected{% endif %}>Manager</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="field-lbl" style="margin-bottom:10px;">Module Access</label>
+            <div class="access-grid">
+                <label class="access-item">
+                    <input type="checkbox" name="can_access_inventory" {% if target_profile.can_access_inventory %}checked{% endif %}>
+                    Inventory
+                </label>
+                <label class="access-item">
+                    <input type="checkbox" name="can_access_sales" {% if target_profile.can_access_sales %}checked{% endif %}>
+                    Sales / POS
+                </label>
+                <label class="access-item">
+                    <input type="checkbox" name="can_access_customers" {% if target_profile.can_access_customers %}checked{% endif %}>
+                    Customers
+                </label>
+                <label class="access-item">
+                    <input type="checkbox" name="can_access_reports" {% if target_profile.can_access_reports %}checked{% endif %}>
+                    Reports
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="is_active" id="is_active"
+                       {% if target_profile.is_active %}checked{% endif %}>
+                <label class="form-check-label" for="is_active">Account Active</label>
+            </div>
+        </div>
+
+        <hr style="margin:20px 0;">
+
+        <div class="mb-4">
+            <label class="field-lbl">Reset Password <span style="font-weight:400;text-transform:none;font-size:0.78rem;">(leave blank to keep current)</span></label>
+            <input type="password" name="new_password" class="form-control" placeholder="New password">
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+            <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+</div>
+{% endblock %}

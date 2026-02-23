@@ -21,11 +21,11 @@
       <!-- Initials avatar -->
       <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#0ea5e9);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
         <span style="color:#fff;font-size:1.6rem;font-weight:700;letter-spacing:-1px;">
-          {{ user.username|slice:":2"|upper }}
+          {% if vendor %}{{ vendor.name|slice:":2"|upper }}{% else %}{{ user.username|slice:":2"|upper }}{% endif %}
         </span>
       </div>
       <div>
-        <h4 class="mb-1">{{ user.get_full_name|default:user.username }}</h4>
+        <h4 class="mb-1">{{ vendor.name|default:user.username }}</h4>
         <p class="mb-1 text-muted" style="font-size:0.9rem;">{{ user.email }}</p>
         <span class="badge"
           style="background:{% if profile.role == 'tenant_admin' %}#6366f1{% elif profile.role == 'manager' %}#0ea5e9{% elif profile.role == 'cashier' %}#10b981{% else %}#64748b{% endif %};color:#fff;font-size:0.78rem;">
@@ -130,6 +130,49 @@
     </div>
 
   </div><!-- /row -->
+
+  {% if profile.role == 'tenant_admin' and vendor %}
+  <!-- QR Code Management (tenant_admin only) -->
+  <div class="card p-4 mt-4">
+    <h5 class="mb-3" style="color:#6366f1;">&#128248; Payment QR Code</h5>
+    <p class="text-muted mb-3" style="font-size:0.88rem;">Upload your shop's payment QR code. It will appear on customer receipts.</p>
+    <div class="row g-4 align-items-start">
+      <div class="col-auto">
+        {% if vendor.qr_code %}
+        <div style="border:1px solid var(--border);border-radius:12px;padding:10px;background:#fafbff;display:inline-block;">
+          <img src="{{ vendor.qr_code.url }}" alt="QR Code"
+               style="width:140px;height:140px;object-fit:contain;display:block;">
+        </div>
+        <p class="text-muted mt-2 mb-0" style="font-size:0.76rem;text-align:center;">Current QR code</p>
+        {% else %}
+        <div style="width:140px;height:140px;border:2px dashed #cbd5e1;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#f8fafc;">
+          <span style="font-size:2.2rem;opacity:0.35;">&#128248;</span>
+        </div>
+        <p class="text-muted mt-2 mb-0" style="font-size:0.76rem;text-align:center;">No QR code set</p>
+        {% endif %}
+      </div>
+      <div class="col">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="qr_upload">
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:0.88rem;">Upload new QR code</label>
+            <input type="file" name="qr_code" accept="image/*" class="form-control" style="font-size:0.88rem;">
+            <div class="form-text">PNG or JPG, max 5 MB. The image will be scaled to fit on receipts.</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm px-4">Upload QR Code</button>
+            {% if vendor.qr_code %}
+            <button type="submit" name="remove_qr" value="1"
+                    class="btn btn-outline-danger btn-sm px-3"
+                    onclick="return confirm('Remove the current QR code?');">Remove</button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Quick actions -->
   <div class="card p-4 mt-4">

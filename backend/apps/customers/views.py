@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Customer, CreditTransaction, IrregularCustomer
 from apps.sales.models import Sale
+from apps.accounts.views import is_staff_level, log_change
 from decimal import Decimal, InvalidOperation
 
 @login_required
@@ -116,6 +117,13 @@ def irregular_customer_detail(request, pk):
 def customer_edit(request, phone):
     customer = get_object_or_404(Customer, phone_number=phone)
     if request.method == 'POST':
+        before = {
+            'customer_name': customer.customer_name or '',
+            'email': customer.email or '',
+            'secondary_phone': customer.secondary_phone_number or '',
+            'address': customer.address or '',
+            'city': customer.city or '',
+        }
         customer.customer_name = request.POST.get('customer_name')
         customer.email = request.POST.get('email')
         customer.secondary_phone_number = request.POST.get('secondary_phone_number', '')
@@ -123,11 +131,24 @@ def customer_edit(request, phone):
         customer.city = request.POST.get('city', '')
         customer.notes = request.POST.get('notes', '')
         customer.save()
+        after = {
+            'customer_name': customer.customer_name or '',
+            'email': customer.email or '',
+            'secondary_phone': customer.secondary_phone_number or '',
+            'address': customer.address or '',
+            'city': customer.city or '',
+        }
+        log_change(request, 'update', 'Customer', phone,
+                   f'Updated customer {customer.customer_name} ({phone}).',
+                   before=before, after=after)
         return redirect('customer_detail', phone=phone)
     return render(request, 'customers/customer_edit.html', {'customer': customer})
 
 @login_required
 def customer_delete(request, phone):
+    if is_staff_level(request):
+        messages.error(request, 'Staff users cannot delete records.')
+        return redirect('customer_list')
     customer = get_object_or_404(Customer, phone_number=phone)
     if request.method == 'POST':
         customer.delete()

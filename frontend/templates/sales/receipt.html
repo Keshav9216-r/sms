@@ -19,6 +19,15 @@
     </div>
 
     <div class="card mb-4">
+        <div class="card-body text-center py-3" style="border-bottom:2px solid #e2e8f0;">
+            <h5 class="mb-0 fw-bold">{{ request.tenant.name|default:"Shop" }}</h5>
+            {% if request.tenant.pan_number %}
+            <div style="font-size:0.82rem; color:#64748b; margin-top:2px;">PAN No: <strong>{{ request.tenant.pan_number }}</strong></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mb-4">
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-4">
@@ -103,6 +112,13 @@
     </div>
 
     <div class="mt-4 text-center">
+        {% if request.tenant.qr_code %}
+        <div class="mb-3">
+            <p class="text-muted mb-1" style="font-size:0.82rem;">Scan to Pay</p>
+            <img src="{{ request.tenant.qr_code.url }}" alt="Payment QR Code"
+                 style="width:130px;height:130px;object-fit:contain;border:1px solid #e2e8f0;border-radius:8px;padding:6px;">
+        </div>
+        {% endif %}
         <strong><em>Thank You!</em></strong><br>
         <strong><em>Visit Again</em></strong> ❤️
     </div>

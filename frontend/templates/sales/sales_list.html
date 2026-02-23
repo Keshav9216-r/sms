@@ -1,119 +1,151 @@
 {% extends "base.html" %}
-
-{% block title %}Sales List{% endblock %}
+{% block title %}Sales History{% endblock %}
+{% block page_title %}Sales{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="section-banner d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div>
-            <h2>Sales Transactions</h2>
-            <p>Track sales history, payment status, and order progress.</p>
-        </div>
-        <div class="mt-3 mt-md-0">
-            <a href="/sales/pos/" class="btn btn-primary">New Sale</a>
-        </div>
-    </div>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get">
-                <div class="row g-2 align-items-end">
-                    <div class="col-md-7">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text">Filter</span>
-                            <select name="filter_by" class="form-select" style="max-width: 190px;">
-                                <option value="all" {% if filter_by == 'all' %}selected{% endif %}>All</option>
-                                <option value="customer" {% if filter_by == 'customer' %}selected{% endif %}>Customer Name</option>
-                                <option value="phone" {% if filter_by == 'phone' %}selected{% endif %}>Customer Phone</option>
-                                <option value="sale_number" {% if filter_by == 'sale_number' %}selected{% endif %}>Sale Number</option>
-                                <option value="amount" {% if filter_by == 'amount' %}selected{% endif %}>Total Amount</option>
-                                <option value="payment_status" {% if filter_by == 'payment_status' %}selected{% endif %}>Payment Status</option>
-                                <option value="order_status" {% if filter_by == 'order_status' %}selected{% endif %}>Order Status</option>
-                            </select>
-                            <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Type Here...">
-                        </div>
-                    </div>
-                    <div class="col-md-5 d-flex gap-2">
-                        <button type="submit" class="btn btn-outline-primary btn-sm">Apply</button>
-                        <a href="/sales/history/" class="btn btn-outline-secondary btn-sm">Reset</a>
-                    </div>
-                </div>
-                <div class="row g-2 align-items-end mt-1">
-                    <div class="col-md-3">
-                        <label class="form-label">Sort By</label>
-                        <select name="sort_by" class="form-select form-select-sm">
-                            <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date (Newest)</option>
-                            <option value="customer_asc" {% if sort_by == 'customer_asc' %}selected{% endif %}>Customer (A → Z)</option>
-                            <option value="customer_desc" {% if sort_by == 'customer_desc' %}selected{% endif %}>Customer (Z → A)</option>
-                            <option value="phone" {% if sort_by == 'phone' %}selected{% endif %}>Customer Phone</option>
-                            <option value="amount_asc" {% if sort_by == 'amount_asc' %}selected{% endif %}>Total (Low → High)</option>
-                            <option value="amount_desc" {% if sort_by == 'amount_desc' %}selected{% endif %}>Total (High → Low)</option>
-                            <option value="sale_number_asc" {% if sort_by == 'sale_number_asc' %}selected{% endif %}>Sale # (A → Z)</option>
-                            <option value="sale_number_desc" {% if sort_by == 'sale_number_desc' %}selected{% endif %}>Sale # (Z → A)</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">From Date</label>
-                        <input type="date" name="from_date" class="form-control form-control-sm" value="{{ from_date }}">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">To Date</label>
-                        <input type="date" name="to_date" class="form-control form-control-sm" value="{{ to_date }}">
-                    </div>
-                    <div class="col-md-3 d-flex gap-2">
-                        <button type="submit" class="btn btn-outline-primary btn-sm">Apply Sort</button>
-                    </div>
-                </div>
-            </form>
-        </div>
+<div class="pg-head">
+    <div>
+        <h1>Sales History</h1>
+        <p>Track sales, payment status, and order progress.</p>
     </div>
-
-    {% if sales %}
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>Sale #</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Total</th>
-                    <th>Payment</th>
-                    <th>Status</th>
-                    <th>Order</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sale in sales %}
-                <tr>
-                    <td>{{ sale.sale_number }}</td>
-                    <td>{{ sale.sale_date|date:"M d, Y H:i" }}</td>
-                    <td>
-                        {% if sale.irregular_customer %}
-                            IR: {{ sale.irregular_customer.customer_name }}
-                        {% else %}
-                            {{ sale.customer.customer_name|default:"Walk-in" }}
-                        {% endif %}
-                    </td>
-                    <td>Rs. {{ sale.total_amount }}</td>
-                    <td>{{ sale.payment_method }}</td>
-                    <td>{{ sale.payment_status }}</td>
-                    <td>{{ sale.order_status }}</td>
-                    <td>
-                        <a href="/sales/{{ sale.sale_number }}/" class="btn btn-sm btn-info">View</a>
-                        <a href="/sales/receipt/{{ sale.sale_number }}/" class="btn btn-sm btn-success">Receipt</a>
-                        <a href="/sales/receipt/{{ sale.sale_number }}/pdf/" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">PDF</a>
-                        <a href="/sales/receipt/{{ sale.sale_number }}/pdf/?download=1" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" download>Download</a>
-                        <a href="/sales/edit/{{ sale.sale_number }}/" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="/sales/delete/{{ sale.sale_number }}/" class="btn btn-sm btn-danger">Delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="alert alert-info">No sales found.</div>
-    {% endif %}
+    <a href="/sales/pos/" class="btn btn-primary btn-sm">+ New Sale</a>
 </div>
+
+<div class="filter-bar">
+    <form method="get">
+        <div class="row g-2 align-items-end">
+            <div class="col-sm-2">
+                <select name="filter_by" class="form-select">
+                    <option value="all"            {% if filter_by == 'all' %}selected{% endif %}>All</option>
+                    <option value="customer"       {% if filter_by == 'customer' %}selected{% endif %}>Customer</option>
+                    <option value="phone"          {% if filter_by == 'phone' %}selected{% endif %}>Phone</option>
+                    <option value="sale_number"    {% if filter_by == 'sale_number' %}selected{% endif %}>Sale #</option>
+                    <option value="amount"         {% if filter_by == 'amount' %}selected{% endif %}>Amount</option>
+                    <option value="payment_status" {% if filter_by == 'payment_status' %}selected{% endif %}>Payment Status</option>
+                    <option value="order_status"   {% if filter_by == 'order_status' %}selected{% endif %}>Order Status</option>
+                </select>
+            </div>
+            <div class="col-sm-3">
+                <input type="text" name="q" class="form-control" value="{{ query }}" placeholder="Search…">
+            </div>
+            <div class="col-sm-2">
+                <select name="sort_by" class="form-select">
+                    <option value="date"            {% if sort_by == 'date' %}selected{% endif %}>Date (newest)</option>
+                    <option value="customer_asc"    {% if sort_by == 'customer_asc' %}selected{% endif %}>Customer A→Z</option>
+                    <option value="customer_desc"   {% if sort_by == 'customer_desc' %}selected{% endif %}>Customer Z→A</option>
+                    <option value="amount_asc"      {% if sort_by == 'amount_asc' %}selected{% endif %}>Amount Low→High</option>
+                    <option value="amount_desc"     {% if sort_by == 'amount_desc' %}selected{% endif %}>Amount High→Low</option>
+                    <option value="sale_number_asc" {% if sort_by == 'sale_number_asc' %}selected{% endif %}>Sale # A→Z</option>
+                    <option value="sale_number_desc"{% if sort_by == 'sale_number_desc' %}selected{% endif %}>Sale # Z→A</option>
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <input type="date" name="from_date" class="form-control" value="{{ from_date }}" placeholder="From">
+            </div>
+            <div class="col-sm-2">
+                <input type="date" name="to_date" class="form-control" value="{{ to_date }}" placeholder="To">
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-2">
+            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+            <a href="/sales/history/" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+    </form>
+</div>
+
+{% if sales %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Sale #</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th>Method</th>
+                <th>Paid</th>
+                <th>Order</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sale in sales %}
+            <tr>
+                <td style="font-family:monospace;font-size:.78rem;color:var(--brand-dark);font-weight:600;">{{ sale.sale_number }}</td>
+                <td style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;">
+                    {{ sale.sale_date|date:"M d, Y" }}<br>
+                    <span style="font-size:.7rem;">{{ sale.sale_date|date:"H:i" }}</span>
+                </td>
+                <td style="font-size:.8rem;">
+                    {% if sale.irregular_customer %}
+                        <span style="font-size:.7rem;color:var(--text-muted);">Walk-in</span><br>
+                        {{ sale.irregular_customer.customer_name }}
+                    {% else %}
+                        {{ sale.customer.customer_name|default:"—" }}
+                    {% endif %}
+                </td>
+                <td style="font-weight:600;font-size:.82rem;">Rs.{{ sale.total_amount }}</td>
+                <td>
+                    {% if sale.payment_method == 'cash' %}
+                        <span class="badge" style="background:#f1f5f9;color:#475569;">Cash</span>
+                    {% elif sale.payment_method == 'card' %}
+                        <span class="badge" style="background:#dbeafe;color:#1d4ed8;">QR</span>
+                    {% elif sale.payment_method == 'credit' %}
+                        <span class="badge" style="background:#fef9c3;color:#a16207;">Credit</span>
+                    {% else %}
+                        <span class="badge" style="background:#f1f5f9;color:#475569;">{{ sale.payment_method }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if sale.payment_status == 'paid' %}
+                        <span class="badge" style="background:#dcfce7;color:#166534;">Paid</span>
+                    {% elif sale.payment_status == 'pending' %}
+                        <span class="badge" style="background:#fef9c3;color:#a16207;">Pending</span>
+                    {% elif sale.payment_status == 'partially paid' %}
+                        <span class="badge" style="background:#ffedd5;color:#c2410c;">Partial</span>
+                    {% else %}
+                        <span class="badge" style="background:#f1f5f9;color:#475569;">{{ sale.payment_status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if sale.order_status == 'completed' %}
+                        <span class="badge" style="background:#dcfce7;color:#166534;">Completed</span>
+                    {% elif sale.order_status == 'cancelled' %}
+                        <span class="badge" style="background:#fee2e2;color:#991b1b;">Cancelled</span>
+                    {% elif sale.order_status == 'returned' %}
+                        <span class="badge" style="background:#f1f5f9;color:#64748b;">Returned</span>
+                    {% else %}
+                        <span class="badge" style="background:#f1f5f9;color:#64748b;">{{ sale.order_status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                        <a href="/sales/{{ sale.sale_number }}/" class="btn btn-xs btn-outline-secondary">View</a>
+                        <a href="/sales/receipt/{{ sale.sale_number }}/" class="btn btn-xs btn-outline-success">Receipt</a>
+                        <a href="/sales/receipt/{{ sale.sale_number }}/pdf/?download=1" class="btn btn-xs btn-outline-primary" target="_blank" rel="noopener" download>PDF</a>
+                        <a href="/sales/edit/{{ sale.sale_number }}/" class="btn btn-xs btn-outline-warning">Edit</a>
+                        <a href="/sales/delete/{{ sale.sale_number }}/" class="btn btn-xs btn-outline-danger">Del</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-b text-center" style="padding:48px;color:var(--text-muted);">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="margin:0 auto 12px;display:block;opacity:.25;">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="1"/>
+            <line x1="9" y1="12" x2="15" y2="12"/>
+            <line x1="9" y1="16" x2="13" y2="16"/>
+        </svg>
+        <p style="margin:0;">No sales found</p>
+        <p style="font-size:.78rem;margin-top:4px;">Try adjusting your filters or <a href="/sales/pos/" style="color:var(--brand);">create a new sale</a>.</p>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}

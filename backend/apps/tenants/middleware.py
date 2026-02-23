@@ -5,11 +5,7 @@ from .utils import ensure_tenant_db, set_current_tenant
 
 
 def _extract_tenant_code(request):
-    # Do NOT trust client-supplied headers (X-Tenant-Code, X-Tenant) —
-    # they can be spoofed by any HTTP client.
-
     host = request.get_host().split(':')[0]
-    # Validate host against ALLOWED_HOSTS before using it for tenant lookup
     allowed_hosts = getattr(settings, 'ALLOWED_HOSTS', [])
     if allowed_hosts and host not in allowed_hosts and '*' not in allowed_hosts:
         return None
@@ -62,11 +58,19 @@ class TenantMiddleware:
 
 
 class TenantAccessMiddleware:
+    # Tenant-level section access flags
     SECTION_RULES = (
         ('/customers/', 'access_customers'),
         ('/inventory/', 'access_inventory'),
         ('/sales/', 'access_sales'),
         ('/reports/', 'access_reports'),
+    )
+    # Per-user (staff-level) access flags — same sections, different field names
+    STAFF_SECTION_RULES = (
+        ('/customers/', 'can_access_customers'),
+        ('/inventory/', 'can_access_inventory'),
+        ('/sales/',     'can_access_sales'),
+        ('/reports/',   'can_access_reports'),
     )
 
     def __init__(self, get_response):
@@ -74,8 +78,30 @@ class TenantAccessMiddleware:
 
     def __call__(self, request):
         tenant = getattr(request, 'tenant', None)
-        if tenant:
-            for prefix, flag in self.SECTION_RULES:
-                if request.path.startswith(prefix) and not getattr(tenant, flag, True):
-                    return HttpResponseForbidden('Access denied for this section.')
+        if not tenant:
+            return self.get_response(request)
+
+        # 1. Tenant-level access (module enabled/disabled by superadmin)
+        for prefix, flag in self.SECTION_RULES:
+            if request.path.startswith(prefix) and not getattr(tenant, flag, True):
+                return HttpResponseForbidden('Access denied for this section.')
+
+        # 2. Per-user access (staff members may have restricted modules)
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            tenant_db = getattr(request, 'tenant_db', None)
+            if tenant_db:
+                try:
+                    from apps.accounts.models import UserProfile
+                    profile = UserProfile.objects.using(tenant_db).filter(
+                        user_id=request.user.id
+                    ).first()
+                    if profile and profile.is_staff_level:
+                        for prefix, field in self.STAFF_SECTION_RULES:
+                            if request.path.startswith(prefix) and not getattr(profile, field, True):
+                                return HttpResponseForbidden(
+                                    'You do not have permission to access this section.'
+                                )
+                except Exception:
+                    pass  # Don't break requests on middleware errors
+
         return self.get_response(request)

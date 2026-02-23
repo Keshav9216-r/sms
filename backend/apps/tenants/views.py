@@ -186,6 +186,7 @@ def vendor_detail(request, tenant_id):
 
     if request.method == 'POST':
         vendor.name = request.POST.get('name', vendor.name)
+        vendor.pan_number = request.POST.get('pan_number', vendor.pan_number).strip()
         vendor.status = request.POST.get('status', vendor.status)
         vendor.is_active = vendor.status == 'active'
         vendor.access_customers = request.POST.get('access_customers') == 'on'

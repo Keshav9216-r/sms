@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Verify Identity — Changelog{% endblock %}
+{% block content %}
+<style>
+.verify-wrap { min-height:65vh; display:flex; align-items:center; justify-content:center; }
+.verify-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:36px 32px; max-width:400px; width:100%; box-shadow:0 8px 32px rgba(15,23,42,0.08); }
+.verify-card h2 { font-size:1.15rem; font-weight:700; margin-bottom:6px; }
+.verify-card p { font-size:0.85rem; color:var(--text-muted); margin-bottom:24px; }
+.field-lbl { display:block; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin-bottom:4px; }
+.error-box { background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:0.84rem; }
+.lock-icon { font-size:2.5rem; text-align:center; margin-bottom:16px; }
+</style>
+<div class="verify-wrap">
+  <div class="verify-card">
+    <div class="lock-icon">🔒</div>
+    <h2>Admin Verification Required</h2>
+    <p>Enter your password to view the changelog. This ensures only authorised admins can access audit records.</p>
+    {% if error %}
+    <div class="error-box">{{ error }}</div>
+    {% endif %}
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="verify_password" value="1">
+      <div class="mb-3">
+        <label class="field-lbl" for="password">Your Password</label>
+        <input type="password" id="password" name="password" class="form-control" autofocus required>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary px-4">Verify & View Changelog</button>
+        <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

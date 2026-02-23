@@ -3,82 +3,236 @@
 {% block title %}Credit Records{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="section-banner d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div>
-            <h2>Credit Records</h2>
-            <p>Monitor customers with outstanding balances.</p>
-        </div>
-        <div class="mt-3 mt-md-0">
-            <a href="/sales/" class="btn btn-outline-secondary">Back to Sales</a>
-        </div>
-    </div>
+<div class="container-fluid py-2 px-3">
+<style>
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.page-header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+.page-header p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+.filter-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+}
+.filter-card label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    display: block;
+}
+.filter-card .form-control,
+.filter-card .form-select {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+.data-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+}
+.data-card table {
+    margin: 0;
+    font-size: 0.85rem;
+}
+.data-card thead th {
+    background: var(--surface-muted);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    padding: 10px 14px;
+    white-space: nowrap;
+}
+.data-card tbody td {
+    padding: 10px 14px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border);
+}
+.data-card tbody tr:last-child td {
+    border-bottom: none;
+}
+.data-card tbody tr:hover td {
+    background: #fafbff;
+}
+.credit-amount {
+    font-weight: 700;
+    font-size: 0.92rem;
+}
+.credit-amount.high   { color: #dc2626; }
+.credit-amount.medium { color: #d97706; }
+.credit-amount.low    { color: #16a34a; }
+.credit-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.credit-bar {
+    flex: 1;
+    height: 5px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    max-width: 90px;
+}
+.credit-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: #dc2626;
+}
+.customer-name {
+    font-weight: 600;
+}
+.customer-phone {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+.action-group {
+    display: flex;
+    gap: 4px;
+}
+.action-group .btn {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+.empty-state {
+    text-align: center;
+    padding: 52px 20px;
+    color: var(--text-muted);
+}
+.empty-state svg {
+    display: block;
+    margin: 0 auto 14px;
+    opacity: 0.2;
+}
+.empty-state p { margin: 0; font-size: 0.95rem; }
+.empty-state .sub { font-size: 0.8rem; margin-top: 4px; }
+</style>
 
-    <form method="get" class="mb-4">
-        <div class="card p-3 mb-3">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-8">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text">Filter</span>
-                        <select name="filter_by" class="form-select" style="max-width: 190px;">
-                            <option value="all" {% if filter_by == 'all' %}selected{% endif %}>All</option>
-                            <option value="name" {% if filter_by == 'name' %}selected{% endif %}>Customer Name</option>
-                            <option value="phone" {% if filter_by == 'phone' %}selected{% endif %}>Phone</option>
-                            <option value="email" {% if filter_by == 'email' %}selected{% endif %}>Email</option>
-                            <option value="credit" {% if filter_by == 'credit' %}selected{% endif %}>Credit Amount</option>
-                        </select>
-                        <input type="text" name="q" class="form-control" placeholder="Type Here..." value="{{ query|default:'' }}">
-                    </div>
-                </div>
-                <div class="col-md-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-outline-primary btn-sm">Apply</button>
-                    <a href="/sales/credits/" class="btn btn-outline-secondary btn-sm">Reset</a>
-                </div>
-            </div>
-        </div>
+<!-- Header -->
+<div class="page-header">
+    <div>
+        <h1>Credit Records</h1>
+        <p>Customers with outstanding credit balances.</p>
+    </div>
+    <a href="/sales/history/" class="btn btn-outline-secondary btn-sm px-3">Sales History</a>
+</div>
+
+<!-- Filters -->
+<div class="filter-card">
+    <form method="get">
         <div class="row g-2 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label">Sort By</label>
-                <select name="sort_by" class="form-select form-select-sm">
-                    <option value="credit_desc" {% if sort_by == 'credit_desc' %}selected{% endif %}>Credit (High → Low)</option>
-                    <option value="credit_asc" {% if sort_by == 'credit_asc' %}selected{% endif %}>Credit (Low → High)</option>
-                    <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A → Z)</option>
-                    <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z → A)</option>
+            <div class="col-sm-3">
+                <label>Filter by</label>
+                <select name="filter_by" class="form-select">
+                    <option value="all"    {% if filter_by == 'all' %}selected{% endif %}>All</option>
+                    <option value="name"   {% if filter_by == 'name' %}selected{% endif %}>Customer Name</option>
+                    <option value="phone"  {% if filter_by == 'phone' %}selected{% endif %}>Phone</option>
+                    <option value="email"  {% if filter_by == 'email' %}selected{% endif %}>Email</option>
+                    <option value="credit" {% if filter_by == 'credit' %}selected{% endif %}>Credit Amount</option>
                 </select>
             </div>
-            <div class="col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-outline-primary btn-sm">Apply Sort</button>
+            <div class="col-sm-4">
+                <label>Search</label>
+                <input type="text" name="q" class="form-control" value="{{ query|default:'' }}" placeholder="Type here…">
+            </div>
+            <div class="col-sm-3">
+                <label>Sort by</label>
+                <select name="sort_by" class="form-select">
+                    <option value="credit_desc" {% if sort_by == 'credit_desc' %}selected{% endif %}>Credit High→Low</option>
+                    <option value="credit_asc"  {% if sort_by == 'credit_asc' %}selected{% endif %}>Credit Low→High</option>
+                    <option value="name_asc"    {% if sort_by == 'name_asc' %}selected{% endif %}>Name A→Z</option>
+                    <option value="name_desc"   {% if sort_by == 'name_desc' %}selected{% endif %}>Name Z→A</option>
+                </select>
+            </div>
+            <div class="col-sm-2 d-flex gap-2 align-items-end">
+                <button type="submit" class="btn btn-primary btn-sm px-3">Apply</button>
+                <a href="/sales/credits/" class="btn btn-outline-secondary btn-sm px-3">Reset</a>
             </div>
         </div>
     </form>
+</div>
 
+<!-- Table -->
+<div class="data-card">
     {% if customers %}
+
+    {% comment %}Compute max credit for bar scaling via template{% endcomment %}
     <div class="table-responsive">
         <table class="table table-hover">
-            <thead class="table-dark">
+            <thead>
                 <tr>
                     <th>Customer</th>
                     <th>Phone</th>
-                    <th>Current Credit</th>
-                    <th>Receipts</th>
+                    <th>Credit Balance</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for customer in customers %}
+                {% with credit=customer.current_credit|floatformat:2 %}
                 <tr>
-                    <td>{{ customer.customer_name }}</td>
-                    <td>{{ customer.phone_number }}</td>
-                    <td>Rs. {{ customer.current_credit }}</td>
+                    <td><span class="customer-name">{{ customer.customer_name }}</span></td>
+                    <td><span class="customer-phone">{{ customer.phone_number }}</span></td>
                     <td>
-                        <a href="/customers/{{ customer.phone_number }}/" class="btn btn-sm btn-info" target="_blank" rel="noopener">View Receipts</a>
+                        <div class="credit-bar-wrap">
+                            <span class="credit-amount
+                                {% if customer.current_credit >= 5000 %}high
+                                {% elif customer.current_credit >= 1000 %}medium
+                                {% else %}low{% endif %}">
+                                Rs. {{ customer.current_credit }}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="/customers/{{ customer.phone_number }}/" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">View Receipts</a>
+                        </div>
                     </td>
                 </tr>
+                {% endwith %}
                 {% endfor %}
             </tbody>
         </table>
     </div>
     {% else %}
-    <div class="alert alert-info">No customers with credit balance.</div>
+    <div class="empty-state">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p>No credit balances</p>
+        <p class="sub">Customers with outstanding credit will appear here.</p>
+    </div>
     {% endif %}
+</div>
+
 </div>
 {% endblock %}

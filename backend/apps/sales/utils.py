@@ -55,9 +55,9 @@ def number_to_words(amount):
         words += f" and {two_digit(paise)} paise"
     return words
 
-def generate_receipt_pdf(sale):
+def generate_receipt_pdf(sale, tenant=None):
     """Generate PDF receipt for a sale"""
-    
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -67,19 +67,20 @@ def generate_receipt_pdf(sale):
         leftMargin=0.6 * inch,
         rightMargin=0.6 * inch,
     )
-    
+
     elements = []
     styles = getSampleStyleSheet()
-    
+
     # Shop Header
-    shop_name = Paragraph('<b>Kopila Books &amp; stationery</b>', ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=16))
-    shop_address = Paragraph('Gaindakot, Nepal', ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=12))
-    shop_phone = Paragraph('Ph: 9845817460', ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=12))
-    
-    elements.append(shop_name)
-    elements.append(Spacer(1, 0.05*inch))
-    elements.append(shop_address)
-    elements.append(shop_phone)
+    shop_name_text = tenant.name if tenant else 'Shop'
+    shop_pan = getattr(tenant, 'pan_number', '') if tenant else ''
+    center_style = ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=16)
+    sub_style   = ParagraphStyle(name='center_sub', alignment=TA_CENTER, fontSize=11)
+
+    elements.append(Paragraph(f'<b>{shop_name_text}</b>', center_style))
+    if shop_pan:
+        elements.append(Spacer(1, 0.03*inch))
+        elements.append(Paragraph(f'PAN No: {shop_pan}', sub_style))
     elements.append(Spacer(1, 0.1*inch))
     
     # Sale Info

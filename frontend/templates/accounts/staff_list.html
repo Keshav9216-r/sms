@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Staff Accounts{% endblock %}
+{% block page_title %}Management{% endblock %}
+
+{% block content %}
+
+<div class="pg-head">
+    <div>
+        <h1>Staff Accounts</h1>
+        <p>Manage staff logins and module access.</p>
+    </div>
+    <div style="display:flex;gap:6px;">
+        <a href="{% url 'changelog_list' %}" class="btn btn-outline-secondary btn-sm">Changelog</a>
+        <a href="{% url 'staff_create' %}" class="btn btn-primary btn-sm">+ New Staff</a>
+    </div>
+</div>
+
+{% if staff_profiles %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Module Access</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sp in staff_profiles %}
+            <tr>
+                <td class="fw-semibold">{{ sp.user.username }}</td>
+                <td>
+                    {% if sp.role == 'manager' %}
+                        <span class="badge" style="background:#dbeafe;color:#1e40af;">Manager</span>
+                    {% elif sp.role == 'cashier' %}
+                        <span class="badge" style="background:#dcfce7;color:#166534;">Cashier</span>
+                    {% else %}
+                        <span class="badge" style="background:#f1f5f9;color:#64748b;">Staff</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                        {% if sp.can_access_inventory %}
+                            <span class="badge" style="background:#e0e7ff;color:#4f46e5;">Inventory</span>
+                        {% endif %}
+                        {% if sp.can_access_sales %}
+                            <span class="badge" style="background:#dcfce7;color:#16a34a;">Sales</span>
+                        {% endif %}
+                        {% if sp.can_access_customers %}
+                            <span class="badge" style="background:#fef9c3;color:#a16207;">Customers</span>
+                        {% endif %}
+                        {% if sp.can_access_reports %}
+                            <span class="badge" style="background:#dbeafe;color:#1d4ed8;">Reports</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>
+                    {% if sp.is_active %}
+                        <span class="badge" style="background:#dcfce7;color:#166534;">Active</span>
+                    {% else %}
+                        <span class="badge" style="background:#f1f5f9;color:#64748b;">Inactive</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:.75rem;color:var(--text-muted);">{{ sp.created_date|date:"M d, Y" }}</td>
+                <td>
+                    <div style="display:flex;gap:4px;">
+                        <a href="{% url 'staff_edit' sp.user.id %}" class="btn btn-xs btn-outline-primary">Edit</a>
+                        <a href="{% url 'staff_delete' sp.user.id %}" class="btn btn-xs btn-outline-danger">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-b text-center" style="padding:40px;color:var(--text-muted);">
+        No staff accounts yet. <a href="{% url 'staff_create' %}" style="color:var(--brand);font-weight:600;">Create the first one</a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

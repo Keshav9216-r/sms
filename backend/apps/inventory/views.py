@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from .models import Product, Category, Inventory
+from apps.accounts.views import is_staff_level, log_change
 import barcode
 from barcode.writer import ImageWriter
 import io
@@ -218,6 +219,9 @@ def product_edit(request, pk):
 
 @login_required
 def product_delete(request, pk):
+    if is_staff_level(request):
+        messages.error(request, 'Staff users cannot delete records.')
+        return redirect('product_list')
     product = get_object_or_404(Product, id=pk)
     if request.method == 'POST':
         product.delete()

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Create Staff Account{% endblock %}
+{% block content %}
+<div class="container" style="max-width:600px;">
+<style>
+.form-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:24px; box-shadow:0 2px 8px rgba(15,23,42,0.05); }
+.form-card h2 { font-size:1.1rem; font-weight:700; margin-bottom:4px; }
+.form-card .sub { font-size:0.8rem; color:var(--text-muted); margin-bottom:20px; }
+.field-lbl { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin-bottom:4px; display:block; }
+.form-control, .form-select { font-size:0.88rem; padding:7px 11px; border-radius:8px; }
+.access-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.access-item { display:flex; align-items:center; gap:8px; padding:10px 14px; border:1.5px solid var(--border); border-radius:10px; cursor:pointer; transition:border-color 0.15s, background 0.15s; font-size:0.85rem; }
+.access-item input[type=checkbox] { width:16px; height:16px; accent-color:var(--brand); flex-shrink:0; }
+.access-item:has(input:checked) { border-color:var(--brand); background:rgba(99,102,241,0.06); }
+.shop-code-badge { display:inline-block; background:#f1f5f9; border:1px solid var(--border); border-radius:6px; padding:3px 10px; font-family:monospace; font-size:0.88rem; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 style="font-size:1.25rem; font-weight:700; margin:0;">Create Staff Account</h1>
+    <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary btn-sm">Back</a>
+</div>
+
+{% if messages %}
+<div class="alert alert-danger">{% for m in messages %}{{ m }}{% endfor %}</div>
+{% endif %}
+
+<div class="form-card">
+    {% if tenant %}
+    <p class="sub">Shop code: <span class="shop-code-badge">{{ tenant.code }}</span> — staff will use this to log in.</p>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="field-lbl">Username</label>
+            <input type="text" name="username" class="form-control" placeholder="e.g. john_sales"
+                   value="{{ request.POST.username|default:'' }}" autocomplete="off" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="field-lbl">Password</label>
+            <input type="password" name="password" class="form-control" placeholder="Min. 8 characters" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="field-lbl">Role</label>
+            <select name="role" class="form-select">
+                <option value="cashier" {% if request.POST.role == 'cashier' or not request.POST.role %}selected{% endif %}>Cashier</option>
+                <option value="staff"   {% if request.POST.role == 'staff' %}selected{% endif %}>Staff</option>
+                <option value="manager" {% if request.POST.role == 'manager' %}selected{% endif %}>Manager</option>
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <label class="field-lbl" style="margin-bottom:10px;">Module Access</label>
+            <div class="access-grid">
+                <label class="access-item">
+                    <input type="checkbox" name="can_access_inventory" {% if request.POST.can_access_inventory or not request.method == 'POST' %}checked{% endif %}>
+                    Inventory
+                </label>
+                <label class="access-item">
+                    <input type="checkbox" name="can_access_sales" {% if request.POST.can_access_sales or not request.method == 'POST' %}checked{% endif %}>
+                    Sales / POS
+                </label>
+                <label class="access-item">
+                    <input type="checkbox" name="can_access_customers" {% if request.POST.can_access_customers or not request.method == 'POST' %}checked{% endif %}>
+                    Customers
+                </label>
+                <label class="access-item">
+                    <input type="checkbox" name="can_access_reports" {% if request.POST.can_access_reports %}checked{% endif %}>
+                    Reports
+                </label>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-4">Create Staff Account</button>
+            <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+</div>
+{% endblock %}
