@@ -55,7 +55,7 @@ def number_to_words(amount):
         words += f" and {two_digit(paise)} paise"
     return words
 
-def generate_receipt_pdf(sale):
+def generate_receipt_pdf(sale, vendor_info=None):
     """Generate PDF receipt for a sale"""
     
     buffer = BytesIO()
@@ -72,14 +72,24 @@ def generate_receipt_pdf(sale):
     styles = getSampleStyleSheet()
     
     # Shop Header
-    shop_name = Paragraph('<b>Kopila Books &amp; stationery</b>', ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=16))
-    shop_address = Paragraph('Gaindakot, Nepal', ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=12))
-    shop_phone = Paragraph('Ph: 9845817460', ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=12))
-    
+    vendor_info = vendor_info or {}
+    shop_name_text = vendor_info.get('name') or 'Shop'
+    shop_address_text = vendor_info.get('address') or '—'
+    shop_phone_text = vendor_info.get('phone') or '—'
+    shop_pan_text = vendor_info.get('pan') or ''
+
+    shop_name = Paragraph(f"<b>{shop_name_text}</b>", ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=16))
+    shop_address = Paragraph(shop_address_text, ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=12))
+    shop_phone = Paragraph(f"Ph: {shop_phone_text}", ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=12))
+
     elements.append(shop_name)
     elements.append(Spacer(1, 0.05*inch))
-    elements.append(shop_address)
-    elements.append(shop_phone)
+    if shop_address_text:
+        elements.append(shop_address)
+    if shop_phone_text:
+        elements.append(shop_phone)
+    if shop_pan_text:
+        elements.append(Paragraph(f"PAN: {shop_pan_text}", ParagraphStyle(name='center', alignment=TA_CENTER, fontSize=11)))
     elements.append(Spacer(1, 0.1*inch))
     
     # Sale Info

@@ -6,8 +6,45 @@
 {% block content %}
 <div class="container-fluid mt-2" id="pos-root">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+
         #pos-root {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            font-family: 'Space Grotesk', 'IBM Plex Sans', 'Segoe UI', sans-serif;
+            color: #0f172a;
+            background: linear-gradient(135deg, #f8f3ea 0%, #eef2ff 45%, #e9f6f0 100%);
+            border-radius: 24px;
+            padding: 18px;
+            box-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        #pos-root::before,
+        #pos-root::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            filter: blur(0);
+            opacity: 0.25;
+            pointer-events: none;
+        }
+        #pos-root::before {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, #f97316 0%, transparent 70%);
+            top: -70px;
+            right: -50px;
+        }
+        #pos-root::after {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, #22c55e 0%, transparent 70%);
+            bottom: -90px;
+            left: -90px;
+        }
+        #pos-root > * {
+            position: relative;
+            z-index: 1;
         }
         .pos-hero {
             display: flex;
@@ -17,11 +54,13 @@
             justify-content: space-between;
         }
         .pos-hero h2 {
-            font-size: 1.3rem;
+            font-family: 'Fraunces', 'Georgia', serif;
+            font-size: 1.6rem;
             margin-bottom: 4px;
+            letter-spacing: 0.02em;
         }
         .pos-hero .pos-subtitle {
-            color: var(--text-muted);
+            color: #475569;
             margin: 0;
         }
         .pos-kpis {
@@ -30,20 +69,34 @@
             flex-wrap: wrap;
         }
         .pos-kpi-card {
-            background: #fff;
-            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(148, 163, 184, 0.35);
             border-radius: 14px;
-            padding: 6px 10px;
+            padding: 8px 12px;
             min-width: 140px;
-            box-shadow: var(--shadow);
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(6px);
         }
         .pos-kpi-label {
             font-size: 0.75rem;
-            color: var(--text-muted);
+            color: #64748b;
         }
         .pos-kpi-value {
             font-weight: 700;
             font-size: 1rem;
+        }
+        .pos-hero .action-chip {
+            background: #0f172a;
+            color: #f8fafc;
+            border-radius: 999px;
+            padding: 6px 12px;
+            text-decoration: none;
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .pos-hero .action-chip:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 18px rgba(15, 23, 42, 0.25);
         }
         .pos-layout {
             align-items: flex-start;
@@ -57,8 +110,19 @@
             align-items: center;
             justify-content: space-between;
         }
+        .pos-layout .card {
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            border-radius: 18px;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+            animation: posFadeUp 0.5s ease both;
+        }
+        .pos-layout .card-header {
+            background: rgba(248, 250, 252, 0.9);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            font-weight: 600;
+        }
         .pos-divider {
-            border-top: 1px dashed var(--border);
+            border-top: 1px dashed rgba(148, 163, 184, 0.5);
             margin: 10px 0;
         }
         .pos-action-btn {
@@ -80,6 +144,19 @@
             padding-top: 5px;
             padding-bottom: 5px;
         }
+        .pos-form-compact .inline-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pos-form-compact .inline-field .form-label {
+            min-width: 120px;
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+        .pos-form-compact .inline-field .field-control {
+            flex: 1;
+        }
         .pos-table-wrapper {
             max-height: 300px;
             overflow: auto;
@@ -90,6 +167,128 @@
         }
         .pos-input-muted {
             background: #f8fafc;
+        }
+        .pos-row-flash {
+            animation: posPulse 1s ease;
+        }
+        .pos-suggest {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            border-radius: 12px;
+            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
+            padding: 6px;
+            z-index: 20;
+            min-width: 220px;
+        }
+        .pos-suggest-item {
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+        .pos-suggest-meta {
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+        .pos-suggest-item:hover,
+        .pos-suggest-item.active {
+            background: #f1f5f9;
+        }
+        .pos-toast-stack {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 2000;
+        }
+        .pos-toast {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.24);
+            animation: posToastIn 0.3s ease;
+        }
+        .pos-toast button {
+            border: 0;
+            background: #f97316;
+            color: #0f172a;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 4px 10px;
+        }
+        .pos-toast--warn {
+            background: #b45309;
+        }
+        .pos-toast--success {
+            background: #14532d;
+        }
+        .pos-recent {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        .pos-recent h6 {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .pos-recent-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .pos-recent-chip {
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            background: #ffffff;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .pos-recent-chip:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
+        }
+        @keyframes posFadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes posPulse {
+            0% {
+                background: rgba(249, 115, 22, 0.2);
+            }
+            100% {
+                background: transparent;
+            }
+        }
+        @keyframes posToastIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
     <div class="section-banner pos-hero mb-2">
@@ -115,6 +314,8 @@
     </div>
 
     <div id="pos-message" class="alert d-none" role="alert"></div>
+    <div id="pos-suggest" class="pos-suggest d-none"></div>
+    <div id="pos-toast-stack" class="pos-toast-stack"></div>
 
     <div class="row g-2 pos-layout">
         <div class="col-lg-4">
@@ -124,49 +325,61 @@
                     <strong>Customer</strong>
                 </div>
                 <div class="card-body pos-card-body pos-form-compact">
-                    <div class="pos-section-compact">
+                    <div class="pos-section-compact inline-field">
                         <label class="form-label">Customer Type</label>
-                        <select id="customer-type" class="form-select">
-                            <option value="regular" selected>Regular Customer</option>
-                            <option value="irregular">IR Customer</option>
-                        </select>
+                        <div class="field-control">
+                            <select id="customer-type" class="form-select">
+                                <option value="regular" selected>Regular Customer</option>
+                                <option value="irregular">IR Customer</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="row g-2">
-                        <div class="col-12">
+                        <div class="col-12 inline-field">
                             <label class="form-label">Search by Name</label>
-                            <input id="customer-name" class="form-control" list="customer-names" placeholder="Start typing name...">
-                            <datalist id="customer-names">
-                                {% for customer in customers %}
-                                <option value="{{ customer.customer_name }}"></option>
-                                {% endfor %}
-                            </datalist>
+                            <div class="field-control">
+                                <input id="customer-name" class="form-control" list="customer-names" placeholder="Start typing name...">
+                                <datalist id="customer-names">
+                                    {% for customer in customers %}
+                                    <option value="{{ customer.customer_name }}"></option>
+                                    {% endfor %}
+                                </datalist>
+                            </div>
                         </div>
-                        <div class="col-12">
+                        <div class="col-12 inline-field">
                             <label class="form-label">Search by Mobile</label>
-                            <input id="customer-phone" class="form-control" list="customer-phones" placeholder="9XXXXXXXXX">
-                            <datalist id="customer-phones">
-                                {% for customer in customers %}
-                                <option value="{{ customer.phone_number }}"></option>
-                                {% if customer.secondary_phone_number %}
-                                <option value="{{ customer.secondary_phone_number }}"></option>
-                                {% endif %}
-                                {% endfor %}
-                            </datalist>
+                            <div class="field-control">
+                                <input id="customer-phone" class="form-control" list="customer-phones" placeholder="9XXXXXXXXX">
+                                <datalist id="customer-phones">
+                                    {% for customer in customers %}
+                                    <option value="{{ customer.phone_number }}"></option>
+                                    {% if customer.secondary_phone_number %}
+                                    <option value="{{ customer.secondary_phone_number }}"></option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </datalist>
+                            </div>
                         </div>
                     </div>
 
                     <div id="irregular-customer-fields" class="row g-2 mt-2 d-none">
-                        <div class="col-12">
+                        <div class="col-12 inline-field">
                             <label class="form-label">IR Customer Name</label>
-                            <input id="ir-customer-name" class="form-control" placeholder="Enter name">
+                            <div class="field-control">
+                                <input id="ir-customer-name" class="form-control" placeholder="Enter name">
+                            </div>
                         </div>
-                        <div class="col-12">
+                        <div class="col-12 inline-field">
                             <label class="form-label">IR Phone (optional)</label>
-                            <input id="ir-customer-phone" class="form-control" placeholder="Phone number">
+                            <div class="field-control">
+                                <input id="ir-customer-phone" class="form-control" placeholder="Phone number">
+                            </div>
                         </div>
-                        <div class="col-12">
+                        <div class="col-12 inline-field">
                             <label class="form-label">IR Address (optional)</label>
-                            <input id="ir-customer-address" class="form-control" placeholder="Address">
+                            <div class="field-control">
+                                <input id="ir-customer-address" class="form-control" placeholder="Address">
+                            </div>
                         </div>
                     </div>
 
@@ -176,6 +389,10 @@
                             <div class="col-12"><strong>Phone:</strong> <span id="cust-phone">—</span></div>
                             <div class="col-12"><strong>Credit:</strong> <span id="cust-credit">—</span></div>
                         </div>
+                    </div>
+                    <div class="pos-recent">
+                        <h6>Recent Customers</h6>
+                        <div id="pos-recent-customers" class="pos-recent-list"></div>
                     </div>
                 </div>
             </div>
@@ -188,24 +405,28 @@
         </div>
         <div class="card-body pos-card-body pos-form-compact">
             <div class="row g-2 mb-2">
-                <div class="col-md-6">
+                <div class="col-md-6 inline-field">
                     <label class="form-label">Barcode</label>
-                    <div class="mb-2">
-                        <select id="barcode-mode" class="form-select">
-                            <option value="scan" selected>Scan Barcode</option>
-                            <option value="manual">Enter Barcode Number</option>
-                        </select>
+                    <div class="field-control">
+                        <div class="mb-2">
+                            <select id="barcode-mode" class="form-select">
+                                <option value="scan" selected>Scan Barcode</option>
+                                <option value="manual">Enter Barcode Number</option>
+                            </select>
+                        </div>
+                        <input id="barcode-input" class="form-control" placeholder="Scan barcode...">
                     </div>
-                    <input id="barcode-input" class="form-control" placeholder="Scan barcode...">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 inline-field">
                     <label class="form-label">Product Name</label>
-                    <input id="barcode-product-input" class="form-control" list="barcode-product-list" placeholder="Choose product...">
-                    <datalist id="barcode-product-list">
-                        {% for product in products %}
-                        <option value="{{ product.product_name }}"></option>
-                        {% endfor %}
-                    </datalist>
+                    <div class="field-control">
+                        <input id="barcode-product-input" class="form-control" list="barcode-product-list" placeholder="Choose product...">
+                        <datalist id="barcode-product-list">
+                            {% for product in products %}
+                            <option value="{{ product.product_name }}"></option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive pos-table-wrapper">
@@ -258,20 +479,28 @@
                     <span class="badge bg-info">Ready</span>
                 </div>
                 <div class="card-body pos-card-body pos-form-compact">
-                    <label class="form-label">Payment Method</label>
-                    <select id="payment-method" class="form-select">
-                        <option value="cash" selected>Cash</option>
-                        <option value="card">QR</option>
-                        <option value="credit">Credit</option>
-                    </select>
+                    <div class="inline-field">
+                        <label class="form-label">Payment Method</label>
+                        <div class="field-control">
+                            <select id="payment-method" class="form-select">
+                                <option value="cash" selected>Cash</option>
+                                <option value="card">QR</option>
+                                <option value="credit">Credit</option>
+                            </select>
+                        </div>
+                    </div>
                     <div id="card-qr-wrapper" class="mt-3 d-none">
                         <div class="small text-muted mb-2">Scan to pay</div>
                         <img id="card-qr" src="{% static 'qr.png' %}" alt="QR payment" class="img-fluid" style="max-width: 220px;">
                     </div>
 
                     <div class="mt-2">
-                        <label class="form-label">Paid Amount</label>
-                        <input id="paid-amount" type="number" class="form-control" value="0">
+                        <div class="inline-field">
+                            <label class="form-label">Paid Amount</label>
+                            <div class="field-control">
+                                <input id="paid-amount" type="number" class="form-control" value="0">
+                            </div>
+                        </div>
                         <small class="text-muted d-block mt-2">Change Due: <span id="change-amount">Rs. 0.00</span></small>
                     </div>
 
@@ -325,6 +554,15 @@ const products = [
     {% endfor %}
 ];
 
+const suggestBox = document.getElementById('pos-suggest');
+const toastStack = document.getElementById('pos-toast-stack');
+const recentCustomersList = document.getElementById('pos-recent-customers');
+let suggestState = null;
+let lastRemovedRow = null;
+let lastValidationMessage = '';
+let lastValidationAt = 0;
+const recentStorageKey = `pos_recent_customers_${window.location.host}`;
+
 const nameInput = document.getElementById('customer-name');
 const phoneInput = document.getElementById('customer-phone');
 const customerType = document.getElementById('customer-type');
@@ -332,6 +570,261 @@ const irregularFields = document.getElementById('irregular-customer-fields');
 const irNameInput = document.getElementById('ir-customer-name');
 const irPhoneInput = document.getElementById('ir-customer-phone');
 const irAddressInput = document.getElementById('ir-customer-address');
+
+function showToast(message, level = 'info', actionLabel = '', onAction = null) {
+    if (!toastStack) {
+        return;
+    }
+    const toast = document.createElement('div');
+    toast.className = `pos-toast pos-toast--${level}`;
+    const label = document.createElement('div');
+    label.textContent = message;
+    toast.appendChild(label);
+    if (actionLabel && onAction) {
+        const actionButton = document.createElement('button');
+        actionButton.type = 'button';
+        actionButton.textContent = actionLabel;
+        actionButton.addEventListener('click', () => {
+            onAction();
+            toast.remove();
+        });
+        toast.appendChild(actionButton);
+    }
+    toastStack.appendChild(toast);
+    window.setTimeout(() => toast.remove(), 3500);
+}
+
+function playBeep(type = 'add') {
+    try {
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = context.createOscillator();
+        const gain = context.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = type === 'warn' ? 220 : 520;
+        gain.gain.value = 0.05;
+        osc.connect(gain);
+        gain.connect(context.destination);
+        osc.start();
+        osc.stop(context.currentTime + 0.12);
+    } catch (err) {
+        // Ignore audio issues
+    }
+}
+
+function vibratePulse() {
+    if (navigator.vibrate) {
+        navigator.vibrate(30);
+    }
+}
+
+function notifyProductAdded(productName) {
+    showToast(`Added ${productName}`, 'success');
+    playBeep('add');
+    vibratePulse();
+}
+
+function recordValidation(message) {
+    const now = Date.now();
+    if (message && (message !== lastValidationMessage || now - lastValidationAt > 1500)) {
+        showToast(message, 'warn');
+        lastValidationMessage = message;
+        lastValidationAt = now;
+        playBeep('warn');
+    }
+}
+
+function loadRecentCustomers() {
+    try {
+        const saved = window.localStorage.getItem(recentStorageKey);
+        return saved ? JSON.parse(saved) : [];
+    } catch (err) {
+        return [];
+    }
+}
+
+function saveRecentCustomers(list) {
+    try {
+        window.localStorage.setItem(recentStorageKey, JSON.stringify(list));
+    } catch (err) {
+        // ignore storage errors
+    }
+}
+
+function renderRecentCustomers(list) {
+    if (!recentCustomersList) {
+        return;
+    }
+    recentCustomersList.innerHTML = '';
+    if (!list.length) {
+        const empty = document.createElement('span');
+        empty.className = 'text-muted';
+        empty.textContent = 'No recent customers yet.';
+        recentCustomersList.appendChild(empty);
+        return;
+    }
+    list.forEach(customer => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'pos-recent-chip';
+        chip.textContent = customer.name;
+        chip.addEventListener('click', () => {
+            selectCustomerByName(customer.name);
+            nameInput?.focus();
+        });
+        recentCustomersList.appendChild(chip);
+    });
+}
+
+function updateRecentCustomers(customer) {
+    if (!customer || !customer.name) {
+        return;
+    }
+    const list = loadRecentCustomers().filter(item => item.phone !== customer.phone);
+    list.unshift({
+        name: customer.name,
+        phone: customer.phone,
+    });
+    const trimmed = list.slice(0, 6);
+    saveRecentCustomers(trimmed);
+    renderRecentCustomers(trimmed);
+}
+
+function closeSuggest() {
+    suggestState = null;
+    if (suggestBox) {
+        suggestBox.classList.add('d-none');
+        suggestBox.innerHTML = '';
+    }
+}
+
+function positionSuggest(input) {
+    if (!suggestBox || !input) {
+        return;
+    }
+    const rect = input.getBoundingClientRect();
+    suggestBox.style.top = `${rect.bottom + window.scrollY + 6}px`;
+    suggestBox.style.left = `${rect.left + window.scrollX}px`;
+    suggestBox.style.width = `${Math.max(rect.width, 220)}px`;
+}
+
+function renderSuggest(items) {
+    if (!suggestBox) {
+        return;
+    }
+    suggestBox.innerHTML = '';
+    items.forEach((item, index) => {
+        const option = document.createElement('div');
+        option.className = `pos-suggest-item${index === 0 ? ' active' : ''}`;
+        option.dataset.index = index;
+        const label = document.createElement('span');
+        label.textContent = item.label;
+        option.appendChild(label);
+        if (item.meta) {
+            const meta = document.createElement('span');
+            meta.className = 'pos-suggest-meta';
+            meta.textContent = item.meta;
+            option.appendChild(meta);
+        }
+        option.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            if (suggestState?.onSelect) {
+                suggestState.onSelect(item);
+            }
+            closeSuggest();
+        });
+        suggestBox.appendChild(option);
+    });
+}
+
+function openSuggest(input, items, onSelect) {
+    if (!items.length) {
+        closeSuggest();
+        return;
+    }
+    suggestState = { input, items, onSelect, activeIndex: 0 };
+    renderSuggest(items);
+    positionSuggest(input);
+    suggestBox.classList.remove('d-none');
+}
+
+function moveSuggest(direction) {
+    if (!suggestState) {
+        return;
+    }
+    const { items } = suggestState;
+    suggestState.activeIndex = (suggestState.activeIndex + direction + items.length) % items.length;
+    suggestBox.querySelectorAll('.pos-suggest-item').forEach((item, index) => {
+        item.classList.toggle('active', index === suggestState.activeIndex);
+    });
+}
+
+function selectSuggest() {
+    if (!suggestState) {
+        return;
+    }
+    const item = suggestState.items[suggestState.activeIndex];
+    if (item && suggestState.onSelect) {
+        suggestState.onSelect(item);
+    }
+    closeSuggest();
+}
+
+function getMatches(list, query, max = 6) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+        return [];
+    }
+    return list.filter(item => item.label.toLowerCase().includes(q)).slice(0, max);
+}
+
+function attachSuggestInput(input, items, onSelect) {
+    if (!input) {
+        return;
+    }
+    input.addEventListener('input', () => {
+        const matches = getMatches(items, input.value);
+        openSuggest(input, matches, onSelect);
+    });
+    input.addEventListener('keydown', (event) => {
+        if (!suggestState || suggestState.input !== input) {
+            return;
+        }
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            moveSuggest(1);
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            moveSuggest(-1);
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            selectSuggest();
+        } else if (event.key === 'Escape') {
+            closeSuggest();
+        }
+    });
+    input.addEventListener('focus', () => {
+        if (input.value.trim()) {
+            const matches = getMatches(items, input.value);
+            openSuggest(input, matches, onSelect);
+        }
+    });
+}
+
+window.addEventListener('resize', () => {
+    if (suggestState?.input) {
+        positionSuggest(suggestState.input);
+    }
+});
+window.addEventListener('scroll', () => {
+    if (suggestState?.input) {
+        positionSuggest(suggestState.input);
+    }
+}, true);
+document.addEventListener('click', (event) => {
+    if (suggestBox && !suggestBox.contains(event.target)) {
+        closeSuggest();
+    }
+});
 
 function setCustomerDetails(customer) {
     if (!customer) {
@@ -343,6 +836,27 @@ function setCustomerDetails(customer) {
     document.getElementById('cust-name').textContent = customer.name;
     document.getElementById('cust-phone').textContent = customer.phone;
     document.getElementById('cust-credit').textContent = `Rs. ${customer.credit}`;
+    updateRecentCustomers(customer);
+}
+
+function selectCustomerByName(name) {
+    const customer = customers.find(c => c.name.toLowerCase() === name.toLowerCase());
+    if (customer) {
+        nameInput.value = customer.name;
+        phoneInput.value = customer.phone;
+        setCustomerDetails(customer);
+    }
+}
+
+function selectCustomerByPhone(phone) {
+    const customer = customers.find(
+        c => c.phone === phone || c.secondary_phone === phone
+    );
+    if (customer) {
+        nameInput.value = customer.name;
+        phoneInput.value = customer.phone;
+        setCustomerDetails(customer);
+    }
 }
 
 if (customerType) {
@@ -355,30 +869,50 @@ if (customerType) {
             nameInput.value = '';
             phoneInput.value = '';
             setCustomerDetails(null);
+            irNameInput?.focus();
         } else {
             irNameInput.value = '';
             irPhoneInput.value = '';
             irAddressInput.value = '';
+            nameInput?.focus();
         }
     });
 }
 
 nameInput.addEventListener('input', () => {
-    const customer = customers.find(c => c.name.toLowerCase() === nameInput.value.toLowerCase());
-    if (customer) {
-        phoneInput.value = customer.phone;
-        setCustomerDetails(customer);
-    }
+    selectCustomerByName(nameInput.value);
 });
 
 phoneInput.addEventListener('input', () => {
-    const customer = customers.find(
-        c => c.phone === phoneInput.value || c.secondary_phone === phoneInput.value
-    );
-    if (customer) {
-        nameInput.value = customer.name;
-        setCustomerDetails(customer);
+    selectCustomerByPhone(phoneInput.value);
+});
+
+const customerNameOptions = customers.map(customer => ({
+    label: customer.name,
+    meta: customer.phone,
+    value: customer.name,
+}));
+const customerPhoneOptions = customers.flatMap(customer => {
+    const options = [{
+        label: customer.phone,
+        meta: customer.name,
+        value: customer.phone,
+    }];
+    if (customer.secondary_phone) {
+        options.push({
+            label: customer.secondary_phone,
+            meta: customer.name,
+            value: customer.secondary_phone,
+        });
     }
+    return options;
+});
+
+attachSuggestInput(nameInput, customerNameOptions, (item) => {
+    selectCustomerByName(item.value);
+});
+attachSuggestInput(phoneInput, customerPhoneOptions, (item) => {
+    selectCustomerByPhone(item.value);
 });
 
 function recalcRow(row) {
@@ -397,6 +931,19 @@ function recalcRow(row) {
     totalField.value = (price * qty).toFixed(2);
 }
 
+function setProductOnRow(row, product) {
+    if (!row || !product) {
+        return;
+    }
+    row.querySelector('.product-input').value = product.name;
+    row.querySelector('.price-input').value = product.price;
+    row.querySelector('.qty-input').value = 1;
+    recalcRow(row);
+    recalcGrandTotal();
+    row.classList.add('pos-row-flash');
+    window.setTimeout(() => row.classList.remove('pos-row-flash'), 900);
+}
+
 function recalcGrandTotal() {
     let subtotal = 0;
     document.querySelectorAll('.total-input').forEach(input => {
@@ -404,11 +951,21 @@ function recalcGrandTotal() {
     });
     const discountAmountInput = document.getElementById('discount-amount');
     const discountPercentInput = document.getElementById('discount-percent');
-    let discountAmount = parseFloat(discountAmountInput.value || '0');
-    const discountPercent = parseFloat(discountPercentInput.value || '0');
+    let discountAmount = Math.max(0, parseFloat(discountAmountInput.value || '0'));
+    let discountPercent = Math.max(0, parseFloat(discountPercentInput.value || '0'));
+    if (discountPercent > 100) {
+        discountPercent = 100;
+        discountPercentInput.value = '100';
+        recordValidation('Discount percent capped at 100%.');
+    }
     if (discountPercent > 0) {
         discountAmount = (subtotal * discountPercent) / 100;
         discountAmountInput.value = discountAmount.toFixed(2);
+    }
+    if (discountAmount > subtotal) {
+        discountAmount = subtotal;
+        discountAmountInput.value = discountAmount.toFixed(2);
+        recordValidation('Discount cannot exceed subtotal.');
     }
     const taxable = Math.max(subtotal - discountAmount, 0);
     const total = taxable;
@@ -443,7 +1000,12 @@ function recalcGrandTotal() {
     if (paidInput && methodSelect && !paidInput.dataset.touched && methodSelect.value !== 'credit') {
         paidInput.value = total.toFixed(2);
     }
-    const paidValue = parseFloat(paidInput.value || '0');
+    let paidValue = parseFloat(paidInput.value || '0');
+    if (paidValue < 0) {
+        paidValue = 0;
+        paidInput.value = '0';
+        recordValidation('Paid amount cannot be negative.');
+    }
     const changeDue = Math.max(paidValue - total, 0);
     document.getElementById('change-amount').textContent = `Rs. ${changeDue.toFixed(2)}`;
 }
@@ -456,6 +1018,7 @@ function addProductToPos(product) {
         qtyField.value = Math.max(1, parseInt(qtyField.value || '1', 10) + 1);
         recalcRow(existingRow);
         recalcGrandTotal();
+        notifyProductAdded(product.name);
         return;
     }
     let targetRow = rows.find(row => !row.querySelector('.product-input').value.trim());
@@ -469,19 +1032,45 @@ function addProductToPos(product) {
         targetRow = newRow;
     }
 
-    targetRow.querySelector('.product-input').value = product.name;
-    targetRow.querySelector('.price-input').value = product.price;
-    targetRow.querySelector('.qty-input').value = 1;
-    recalcRow(targetRow);
-    recalcGrandTotal();
+    setProductOnRow(targetRow, product);
+    notifyProductAdded(product.name);
 }
 
 function attachRowEvents(row) {
-    row.querySelector('.product-input').addEventListener('input', () => {
+    const productInput = row.querySelector('.product-input');
+    const qtyInput = row.querySelector('.qty-input');
+    const productOptions = products.map(product => ({
+        label: product.name,
+        meta: `Rs. ${product.price}`,
+        value: product.name,
+        data: product,
+    }));
+    attachSuggestInput(productInput, productOptions, (item) => {
+        setProductOnRow(row, item.data);
+    });
+    productInput.addEventListener('input', () => {
         recalcRow(row);
         recalcGrandTotal();
     });
-    row.querySelector('.qty-input').addEventListener('input', () => {
+    productInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const match = products.find(p => p.name.toLowerCase() === productInput.value.trim().toLowerCase());
+            if (match) {
+                setProductOnRow(row, match);
+                const tbody = document.getElementById('pos-body');
+                if (row === tbody.lastElementChild) {
+                    const newRow = tbody.children[0].cloneNode(true);
+                    newRow.querySelectorAll('input').forEach(input => input.value = '');
+                    newRow.querySelector('.qty-input').value = 1;
+                    attachRowEvents(newRow);
+                    tbody.appendChild(newRow);
+                }
+                row.nextElementSibling?.querySelector('.product-input')?.focus();
+            }
+        }
+    });
+    qtyInput.addEventListener('input', () => {
         recalcRow(row);
         recalcGrandTotal();
     });
@@ -500,6 +1089,11 @@ function attachRowEvents(row) {
     row.querySelector('.remove-row').addEventListener('click', (e) => {
         e.preventDefault();
         const rows = document.querySelectorAll('#pos-body tr');
+        const removedData = {
+            name: row.querySelector('.product-input').value,
+            qty: row.querySelector('.qty-input').value,
+            price: row.querySelector('.price-input').value,
+        };
         if (rows.length > 1) {
             row.remove();
         } else {
@@ -509,6 +1103,21 @@ function attachRowEvents(row) {
             row.querySelector('.total-input').value = '';
         }
         recalcGrandTotal();
+        lastRemovedRow = removedData;
+        if (removedData.name) {
+            showToast(`Removed ${removedData.name}`, 'warn', 'Undo', () => {
+                const tbody = document.getElementById('pos-body');
+                const newRow = tbody.children[0].cloneNode(true);
+                newRow.querySelectorAll('input').forEach(input => input.value = '');
+                newRow.querySelector('.qty-input').value = removedData.qty || 1;
+                newRow.querySelector('.price-input').value = removedData.price || '';
+                newRow.querySelector('.product-input').value = removedData.name;
+                attachRowEvents(newRow);
+                tbody.appendChild(newRow);
+                recalcRow(newRow);
+                recalcGrandTotal();
+            });
+        }
     });
 }
 
@@ -548,6 +1157,16 @@ if (barcodeInput) {
 
 const barcodeProductInput = document.getElementById('barcode-product-input');
 if (barcodeProductInput) {
+    const barcodeProductOptions = products.map(product => ({
+        label: product.name,
+        meta: `Rs. ${product.price}`,
+        value: product.name,
+        data: product,
+    }));
+    attachSuggestInput(barcodeProductInput, barcodeProductOptions, (item) => {
+        addProductToPos(item.data);
+        barcodeProductInput.value = '';
+    });
     const addByName = () => {
         const nameValue = barcodeProductInput.value.trim();
         if (!nameValue) {
@@ -578,6 +1197,7 @@ document.getElementById('add-row').addEventListener('click', (e) => {
     newRow.querySelector('.qty-input').value = 1;
     attachRowEvents(newRow);
     tbody.appendChild(newRow);
+    newRow.querySelector('.product-input').focus();
 });
 
 document.getElementById('discount-amount').addEventListener('input', () => {
@@ -706,6 +1326,12 @@ document.getElementById('confirm-sale').addEventListener('click', async (e) => {
 
 syncPaymentMethodControls();
 recalcGrandTotal();
+renderRecentCustomers(loadRecentCustomers());
+if (barcodeInput) {
+    barcodeInput.focus();
+} else if (nameInput) {
+    nameInput.focus();
+}
 
 function showMessage(message, level) {
     const banner = document.getElementById('pos-message');
@@ -713,6 +1339,7 @@ function showMessage(message, level) {
     banner.textContent = message;
     banner.classList.remove('d-none');
     window.setTimeout(() => banner.classList.add('d-none'), 3500);
+    showToast(message, level === 'warning' ? 'warn' : level === 'success' ? 'success' : 'info');
 }
 
 function getCookie(name) {

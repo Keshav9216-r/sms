@@ -18,25 +18,34 @@
         <div class="row mb-4 g-3">
             <div class="col-md-4">
                 <div class="card text-white bg-primary h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">Total Vendors</h6>
-                        <h2>{{ total_vendors }}</h2>
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1 opacity-75">Total Vendors</h6>
+                            <h2 class="mb-0 fw-bold">{{ total_vendors }}</h2>
+                        </div>
+                        <div class="stat-icon"><i class="fa-solid fa-building"></i></div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card text-white bg-success h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">Active Vendors</h6>
-                        <h2>{{ active_vendors }}</h2>
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1 opacity-75">Active Vendors</h6>
+                            <h2 class="mb-0 fw-bold">{{ active_vendors }}</h2>
+                        </div>
+                        <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card text-white bg-warning h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">Inactive Vendors</h6>
-                        <h2>{{ inactive_vendors }}</h2>
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1 opacity-75">Inactive Vendors</h6>
+                            <h2 class="mb-0 fw-bold">{{ inactive_vendors }}</h2>
+                        </div>
+                        <div class="stat-icon"><i class="fa-solid fa-circle-xmark"></i></div>
                     </div>
                 </div>
             </div>
@@ -108,9 +117,12 @@
             <div class="col-md-3">
                 <a href="/inventory/" class="text-decoration-none">
                     <div class="card text-white bg-primary h-100">
-                        <div class="card-body">
-                            <h6 class="card-title">Total Products</h6>
-                            <h2>{{ total_products }}</h2>
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-1 opacity-75">Total Products</h6>
+                                <h2 class="mb-0 fw-bold">{{ total_products }}</h2>
+                            </div>
+                            <div class="stat-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
                         </div>
                     </div>
                 </a>
@@ -118,9 +130,12 @@
             <div class="col-md-3">
                 <a href="{% url 'today_sales_report' %}" class="text-decoration-none">
                     <div class="card text-white bg-success h-100">
-                        <div class="card-body">
-                            <h6 class="card-title">Today's Sales</h6>
-                            <h2>Rs.{{ today_sales }}</h2>
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-1 opacity-75">Today's Sales</h6>
+                                <h2 class="mb-0 fw-bold">Rs.{{ today_sales }}</h2>
+                            </div>
+                            <div class="stat-icon"><i class="fa-solid fa-cash-register"></i></div>
                         </div>
                     </div>
                 </a>
@@ -128,9 +143,12 @@
             <div class="col-md-3">
                 <a href="/customers/" class="text-decoration-none">
                     <div class="card text-white bg-info h-100">
-                        <div class="card-body">
-                            <h6 class="card-title">Total Customers</h6>
-                            <h2>{{ total_customers }}</h2>
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-1 opacity-75">Total Customers</h6>
+                                <h2 class="mb-0 fw-bold">{{ total_customers }}</h2>
+                            </div>
+                            <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
                         </div>
                     </div>
                 </a>
@@ -138,9 +156,12 @@
             <div class="col-md-3">
                 <a href="/reports/low-stock/" class="text-decoration-none">
                     <div class="card text-white bg-warning h-100">
-                        <div class="card-body">
-                            <h6 class="card-title">Low Stock Items</h6>
-                            <h2>{{ low_stock_count }}</h2>
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title mb-1 opacity-75">Low Stock Items</h6>
+                                <h2 class="mb-0 fw-bold">{{ low_stock_count }}</h2>
+                            </div>
+                            <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         </div>
                     </div>
                 </a>
@@ -152,12 +173,12 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">Quick Access</h5>
+                        <h5 class="mb-0"><i class="fa-solid fa-bolt me-2 text-warning"></i>Quick Access</h5>
                     </div>
-                    <div class="card-body">
-                        <a href="{% url 'product_list' %}" class="btn btn-outline-primary">Manage Products</a>
-                        <a href="{% url 'pos' %}" class="btn btn-outline-success">New Sale</a>
-                        <a href="{% url 'customer_list' %}" class="btn btn-outline-info">Customers</a>
+                    <div class="card-body d-flex flex-wrap gap-2">
+                        <a href="{% url 'product_list' %}" class="btn btn-outline-primary"><i class="fa-solid fa-boxes-stacked me-1"></i>Manage Products</a>
+                        <a href="{% url 'pos' %}" class="btn btn-outline-success"><i class="fa-solid fa-cash-register me-1"></i>New Sale</a>
+                        <a href="{% url 'customer_list' %}" class="btn btn-outline-info"><i class="fa-solid fa-users me-1"></i>Customers</a>
                     </div>
                 </div>
             </div>

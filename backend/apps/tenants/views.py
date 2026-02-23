@@ -62,11 +62,12 @@ def create_vendor(request):
             vendor_name = request.POST.get('vendor_name', '').strip()
             vendor_code = request.POST.get('vendor_code', '').strip().lower()
             owner_email = request.POST.get('owner_email', '').strip().lower()
+            pan_number = request.POST.get('pan_number', '').strip()
             admin_password = request.POST.get('admin_password', '').strip()
             admin_password2 = request.POST.get('admin_password2', '').strip()
             
             # Validation
-            if not all([vendor_name, vendor_code, owner_email, admin_password]):
+            if not all([vendor_name, vendor_code, owner_email, admin_password, pan_number]):
                 messages.error(request, 'All fields are required.')
                 return render(request, 'tenants/create_vendor.html')
             
@@ -97,6 +98,7 @@ def create_vendor(request):
                     name=vendor_name,
                     code=vendor_code,
                     owner_email=owner_email,
+                    pan_number=pan_number,
                     db_name=db_name,
                     admin_user=admin_user,
                 )
@@ -161,6 +163,7 @@ def vendor_detail(request, tenant_id):
     
     if request.method == 'POST':
         vendor.name = request.POST.get('name', vendor.name)
+        vendor.pan_number = request.POST.get('pan_number', vendor.pan_number)
         vendor.status = request.POST.get('status', vendor.status)
         vendor.is_active = vendor.status == 'active'
         vendor.access_customers = request.POST.get('access_customers') == 'on'

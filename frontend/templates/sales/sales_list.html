@@ -16,7 +16,31 @@
 
     <div class="card mb-4">
         <div class="card-body">
-            <form method="get">
+            <form method="get" class="compact-form">
+                <style>
+                    .compact-form .form-label {
+                        font-size: 0.8rem;
+                        margin-bottom: 0;
+                    }
+                    .compact-form .form-select,
+                    .compact-form .form-control {
+                        font-size: 0.85rem;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                    }
+                    .compact-form .inline-field {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .compact-form .inline-field .form-label {
+                        min-width: 110px;
+                        white-space: nowrap;
+                    }
+                    .compact-form .inline-field .field-control {
+                        flex: 1;
+                    }
+                </style>
                 <div class="row g-2 align-items-end">
                     <div class="col-md-7">
                         <div class="input-group input-group-sm">
@@ -39,26 +63,32 @@
                     </div>
                 </div>
                 <div class="row g-2 align-items-end mt-1">
-                    <div class="col-md-3">
+                    <div class="col-md-3 inline-field">
                         <label class="form-label">Sort By</label>
-                        <select name="sort_by" class="form-select form-select-sm">
-                            <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date (Newest)</option>
-                            <option value="customer_asc" {% if sort_by == 'customer_asc' %}selected{% endif %}>Customer (A → Z)</option>
-                            <option value="customer_desc" {% if sort_by == 'customer_desc' %}selected{% endif %}>Customer (Z → A)</option>
-                            <option value="phone" {% if sort_by == 'phone' %}selected{% endif %}>Customer Phone</option>
-                            <option value="amount_asc" {% if sort_by == 'amount_asc' %}selected{% endif %}>Total (Low → High)</option>
-                            <option value="amount_desc" {% if sort_by == 'amount_desc' %}selected{% endif %}>Total (High → Low)</option>
-                            <option value="sale_number_asc" {% if sort_by == 'sale_number_asc' %}selected{% endif %}>Sale # (A → Z)</option>
-                            <option value="sale_number_desc" {% if sort_by == 'sale_number_desc' %}selected{% endif %}>Sale # (Z → A)</option>
-                        </select>
+                        <div class="field-control">
+                            <select name="sort_by" class="form-select form-select-sm">
+                                <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date (Newest)</option>
+                                <option value="customer_asc" {% if sort_by == 'customer_asc' %}selected{% endif %}>Customer (A → Z)</option>
+                                <option value="customer_desc" {% if sort_by == 'customer_desc' %}selected{% endif %}>Customer (Z → A)</option>
+                                <option value="phone" {% if sort_by == 'phone' %}selected{% endif %}>Customer Phone</option>
+                                <option value="amount_asc" {% if sort_by == 'amount_asc' %}selected{% endif %}>Total (Low → High)</option>
+                                <option value="amount_desc" {% if sort_by == 'amount_desc' %}selected{% endif %}>Total (High → Low)</option>
+                                <option value="sale_number_asc" {% if sort_by == 'sale_number_asc' %}selected{% endif %}>Sale # (A → Z)</option>
+                                <option value="sale_number_desc" {% if sort_by == 'sale_number_desc' %}selected{% endif %}>Sale # (Z → A)</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3 inline-field">
                         <label class="form-label">From Date</label>
-                        <input type="date" name="from_date" class="form-control form-control-sm" value="{{ from_date }}">
+                        <div class="field-control">
+                            <input type="date" name="from_date" class="form-control form-control-sm" value="{{ from_date }}">
+                        </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3 inline-field">
                         <label class="form-label">To Date</label>
-                        <input type="date" name="to_date" class="form-control form-control-sm" value="{{ to_date }}">
+                        <div class="field-control">
+                            <input type="date" name="to_date" class="form-control form-control-sm" value="{{ to_date }}">
+                        </div>
                     </div>
                     <div class="col-md-3 d-flex gap-2">
                         <button type="submit" class="btn btn-outline-primary btn-sm">Apply Sort</button>
@@ -86,26 +116,52 @@
             <tbody>
                 {% for sale in sales %}
                 <tr>
-                    <td>{{ sale.sale_number }}</td>
+                    <td><span class="fw-semibold">{{ sale.sale_number }}</span></td>
                     <td>{{ sale.sale_date|date:"M d, Y H:i" }}</td>
                     <td>
                         {% if sale.irregular_customer %}
-                            IR: {{ sale.irregular_customer.customer_name }}
+                            <span class="badge bg-secondary">IR</span> {{ sale.irregular_customer.customer_name }}
                         {% else %}
                             {{ sale.customer.customer_name|default:"Walk-in" }}
                         {% endif %}
                     </td>
-                    <td>Rs. {{ sale.total_amount }}</td>
+                    <td class="fw-semibold">Rs. {{ sale.total_amount }}</td>
                     <td>{{ sale.payment_method }}</td>
-                    <td>{{ sale.payment_status }}</td>
-                    <td>{{ sale.order_status }}</td>
                     <td>
-                        <a href="/sales/{{ sale.sale_number }}/" class="btn btn-sm btn-info">View</a>
-                        <a href="/sales/receipt/{{ sale.sale_number }}/" class="btn btn-sm btn-success">Receipt</a>
-                        <a href="/sales/receipt/{{ sale.sale_number }}/pdf/" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">PDF</a>
-                        <a href="/sales/receipt/{{ sale.sale_number }}/pdf/?download=1" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" download>Download</a>
-                        <a href="/sales/edit/{{ sale.sale_number }}/" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="/sales/delete/{{ sale.sale_number }}/" class="btn btn-sm btn-danger">Delete</a>
+                        {% if sale.payment_status == 'Paid' or sale.payment_status == 'paid' %}
+                            <span class="badge badge-paid">Paid</span>
+                        {% elif sale.payment_status == 'Pending' or sale.payment_status == 'pending' %}
+                            <span class="badge badge-pending">Pending</span>
+                        {% elif sale.payment_status == 'Credit' or sale.payment_status == 'credit' %}
+                            <span class="badge badge-credit">Credit</span>
+                        {% elif sale.payment_status == 'Cancelled' or sale.payment_status == 'cancelled' %}
+                            <span class="badge badge-cancelled">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ sale.payment_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if sale.order_status == 'Completed' or sale.order_status == 'completed' %}
+                            <span class="badge badge-completed">Completed</span>
+                        {% elif sale.order_status == 'Processing' or sale.order_status == 'processing' %}
+                            <span class="badge badge-processing">Processing</span>
+                        {% elif sale.order_status == 'Returned' or sale.order_status == 'returned' %}
+                            <span class="badge badge-returned">Returned</span>
+                        {% elif sale.order_status == 'Cancelled' or sale.order_status == 'cancelled' %}
+                            <span class="badge badge-cancelled">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ sale.order_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            <a href="/sales/{{ sale.sale_number }}/" class="btn btn-sm btn-info" title="View"><i class="fa-solid fa-eye"></i></a>
+                            <a href="/sales/receipt/{{ sale.sale_number }}/" class="btn btn-sm btn-success" title="Receipt"><i class="fa-solid fa-receipt"></i></a>
+                            <a href="/sales/receipt/{{ sale.sale_number }}/pdf/" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" title="PDF"><i class="fa-solid fa-file-pdf"></i></a>
+                            <a href="/sales/receipt/{{ sale.sale_number }}/pdf/?download=1" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" download title="Download"><i class="fa-solid fa-download"></i></a>
+                            <a href="/sales/edit/{{ sale.sale_number }}/" class="btn btn-sm btn-warning" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                            <a href="/sales/delete/{{ sale.sale_number }}/" class="btn btn-sm btn-danger" title="Delete"><i class="fa-solid fa-trash"></i></a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

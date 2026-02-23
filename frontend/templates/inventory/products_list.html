@@ -80,17 +80,17 @@
             </thead>
             <tbody>
                 {% for product in products %}
-                <tr>
+                <tr {% if product.inventory.quantity_in_stock <= 5 %}class="table-warning"{% endif %}>
                     <td>
                         {% if product.image %}
                             <img src="{{ product.image.url }}" alt="{{ product.product_name }}" style="height: 40px; width: 40px; object-fit: cover;" class="rounded">
                         {% else %}
-                            —
+                            <span class="text-muted">—</span>
                         {% endif %}
                     </td>
-                    <td>{{ product.sku }}</td>
+                    <td><code>{{ product.sku }}</code></td>
                     <td>{{ product.barcode|default:"—" }}</td>
-                    <td>{{ product.product_name }}</td>
+                    <td class="fw-semibold">{{ product.product_name }}</td>
                     <td>{{ product.book_name|default:"—" }}</td>
                     <td>{{ product.book_class|default:"—" }}</td>
                     <td>{{ product.book_publication|default:"—" }}</td>
@@ -99,10 +99,18 @@
                     <td>{{ product.supplier|default:"—" }}</td>
                     <td>Rs. {{ product.cost_price }}</td>
                     <td>Rs. {{ product.selling_price }}</td>
-                    <td><span class="badge bg-info">{{ product.inventory.quantity_in_stock }}</span></td>
                     <td>
-                        <a href="/inventory/products/{{ product.id }}/edit/" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="/inventory/products/{{ product.id }}/delete/" class="btn btn-sm btn-danger">Delete</a>
+                        {% if product.inventory.quantity_in_stock <= 5 %}
+                            <span class="badge bg-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>{{ product.inventory.quantity_in_stock }}</span>
+                        {% else %}
+                            <span class="badge bg-info">{{ product.inventory.quantity_in_stock }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a href="/inventory/products/{{ product.id }}/edit/" class="btn btn-sm btn-warning" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                            <a href="/inventory/products/{{ product.id }}/delete/" class="btn btn-sm btn-danger" title="Delete"><i class="fa-solid fa-trash"></i></a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
