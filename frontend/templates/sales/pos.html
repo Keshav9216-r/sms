@@ -91,6 +91,29 @@
         .pos-input-muted {
             background: #f8fafc;
         }
+        .pos-barcode-inline {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .pos-barcode-inline .form-select {
+            min-width: 160px;
+        }
+        .pos-barcode-camera {
+            margin-top: 8px;
+            max-width: 320px;
+        }
+        #barcode-reader {
+            max-width: 320px;
+            max-height: 200px;
+            overflow: hidden;
+        }
+        #barcode-reader video,
+        #barcode-reader canvas {
+            width: 100% !important;
+            height: 200px !important;
+            object-fit: cover;
+        }
     </style>
     <div class="section-banner pos-hero mb-2">
         <div>
@@ -190,13 +213,21 @@
             <div class="row g-2 mb-2">
                 <div class="col-md-6">
                     <label class="form-label">Barcode</label>
-                    <div class="mb-2">
+                    <div class="pos-barcode-inline">
                         <select id="barcode-mode" class="form-select">
-                            <option value="scan" selected>Scan Barcode</option>
-                            <option value="manual">Enter Barcode Number</option>
+                            <option value="manual" selected>Enter Barcode</option>
+                            <option value="camera">Scan Barcode</option>
+                            <option value="none">No Barcode</option>
                         </select>
+                        <input id="barcode-input" class="form-control" placeholder="Enter barcode...">
                     </div>
-                    <input id="barcode-input" class="form-control" placeholder="Scan barcode...">
+                    <div id="barcode-camera" class="border rounded p-2 d-none pos-barcode-camera">
+                        <div id="barcode-reader" style="width: 100%;"></div>
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <button id="barcode-scan-toggle" class="btn btn-sm btn-outline-primary" type="button">Start Scan</button>
+                            <span class="small text-muted">Allow camera permission to scan.</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Product Name</label>
@@ -301,6 +332,7 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 <script>
 const customers = [
     {% for customer in customers %}
@@ -516,19 +548,177 @@ document.querySelectorAll('#pos-body tr').forEach(attachRowEvents);
 
 const barcodeInput = document.getElementById('barcode-input');
 const barcodeMode = document.getElementById('barcode-mode');
-if (barcodeMode && barcodeInput) {
-    barcodeMode.addEventListener('change', () => {
-        if (barcodeMode.value === 'manual') {
-            barcodeInput.placeholder = 'Enter barcode number...';
-        } else {
-            barcodeInput.placeholder = 'Scan barcode...';
+const cameraWrapper = document.getElementById('barcode-camera');
+const scanToggle = document.getElementById('barcode-scan-toggle');
+let scanning = false;
+let lastCode = null;
+let sameCount = 0;
+let lastScanTime = 0;
+const REQUIRED_MATCHES = 3;
+const SCAN_COOLDOWN_MS = 1500;
+let audioCtx = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function beepSuccess() {
+    try {
+        initAudio();
+        if (!audioCtx) {
+            return;
         }
-        barcodeInput.focus();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 880;
+        gainNode.gain.value = 0.05;
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.12);
+    } catch (err) {
+        // Ignore audio errors (autoplay restrictions).
+    }
+}
+
+function stopScan() {
+    if (scanning && window.Quagga) {
+        Quagga.stop();
+        scanning = false;
+        if (scanToggle) {
+            scanToggle.textContent = 'Start Scan';
+        }
+    }
+}
+
+function startScan() {
+    if (!window.Quagga) {
+        return;
+    }
+    lastCode = null;
+    sameCount = 0;
+    Quagga.init({
+        inputStream: {
+            name: 'Live',
+            type: 'LiveStream',
+            target: document.querySelector('#barcode-reader'),
+            constraints: { facingMode: 'environment' },
+        },
+        decoder: {
+            readers: ['code_128_reader', 'ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader']
+        },
+        locate: false,
+    }, (err) => {
+        if (err) {
+            alert('Unable to access camera for barcode scanning.');
+            return;
+        }
+        Quagga.start();
+        scanning = true;
+        if (scanToggle) {
+            scanToggle.textContent = 'Stop Scan';
+        }
     });
 }
+
+function showManualInput() {
+    stopScan();
+    if (cameraWrapper) {
+        cameraWrapper.classList.add('d-none');
+    }
+    if (barcodeInput) {
+        barcodeInput.classList.remove('d-none');
+        barcodeInput.placeholder = 'Enter barcode...';
+        barcodeInput.focus();
+    }
+}
+
+function showScanner() {
+    initAudio();
+    if (barcodeInput) {
+        barcodeInput.classList.add('d-none');
+    }
+    if (cameraWrapper) {
+        cameraWrapper.classList.remove('d-none');
+    }
+    startScan();
+}
+
+function showNone() {
+    stopScan();
+    if (cameraWrapper) {
+        cameraWrapper.classList.add('d-none');
+    }
+    if (barcodeInput) {
+        barcodeInput.value = '';
+        barcodeInput.classList.add('d-none');
+    }
+}
+
+if (scanToggle) {
+    scanToggle.addEventListener('click', () => {
+        if (scanning) {
+            stopScan();
+        } else {
+            startScan();
+        }
+    });
+}
+
+if (barcodeMode) {
+    barcodeMode.addEventListener('change', () => {
+        if (barcodeMode.value === 'camera') {
+            showScanner();
+        } else if (barcodeMode.value === 'none') {
+            showNone();
+        } else {
+            showManualInput();
+        }
+    });
+}
+
+if (window.Quagga) {
+    Quagga.onDetected((data) => {
+        if (!data || !data.codeResult || !data.codeResult.code) {
+            return;
+        }
+        const code = data.codeResult.code;
+        if (code === lastCode) {
+            sameCount += 1;
+        } else {
+            lastCode = code;
+            sameCount = 1;
+        }
+        if (sameCount >= REQUIRED_MATCHES) {
+            const now = Date.now();
+            if (now - lastScanTime < SCAN_COOLDOWN_MS) {
+                return;
+            }
+            lastScanTime = now;
+            const product = products.find(p => p.barcode && p.barcode.toLowerCase() === code.toLowerCase());
+            if (product) {
+                addProductToPos(product);
+                beepSuccess();
+                showMessage('Product added from scan.', 'success');
+            } else {
+                showMessage('No product found for that barcode.', 'warning');
+            }
+        }
+    });
+}
+
 if (barcodeInput) {
     barcodeInput.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter') {
+            return;
+        }
+        if (barcodeMode && barcodeMode.value !== 'manual') {
             return;
         }
         e.preventDefault();
@@ -544,6 +734,16 @@ if (barcodeInput) {
             showMessage('No product found for that barcode.', 'warning');
         }
     });
+}
+
+if (barcodeMode) {
+    if (barcodeMode.value === 'camera') {
+        showScanner();
+    } else if (barcodeMode.value === 'none') {
+        showNone();
+    } else {
+        showManualInput();
+    }
 }
 
 const barcodeProductInput = document.getElementById('barcode-product-input');
