@@ -11,10 +11,15 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-only-for-development')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if os.getenv('DJANGO_ENV') == 'production':
+        raise ValueError("SECRET_KEY environment variable must be set in production.")
+    # Only fall back to insecure key in non-production environments
+    SECRET_KEY = 'django-insecure-dev-key-only-for-development-do-not-use-in-production'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', '').strip().lower() == 'true'
 
 # Only allow specific hosts in production
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
@@ -139,31 +144,77 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+        # BasicAuthentication removed: transmits credentials as base64 on every request
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '30/minute',
+        'user': '200/minute',
+    },
 }
 
 # Session settings
 SESSION_COOKIE_AGE = 3600  # 1 hour
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
+SESSION_COOKIE_SECURE = not DEBUG  # HTTPS only in production
+
+# CSRF settings
+CSRF_COOKIE_HTTPONLY = False  # Must be False so JS can read it for AJAX
+CSRF_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_SECURE = not DEBUG  # HTTPS only in production
+
+# Security headers (active in production where DEBUG=False)
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # Logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'file': {
-            'level': 'ERROR',
+            'level': 'WARNING',
             'class': 'logging.FileHandler',
             'filename': BASE_DIR / 'logs' / 'django.log',
+            'formatter': 'verbose',
+        },
+        'security_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'security.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'security': {
+            'handlers': ['security_file'],
+            'level': 'INFO',
+            'propagate': False,
         },
     },
     'root': {
         'handlers': ['file'],
-        'level': 'INFO',
+        'level': 'WARNING',
     },
 }
 

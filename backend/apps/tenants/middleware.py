@@ -5,11 +5,15 @@ from .utils import ensure_tenant_db, set_current_tenant
 
 
 def _extract_tenant_code(request):
-    header_code = request.headers.get('X-Tenant-Code') or request.headers.get('X-Tenant')
-    if header_code:
-        return header_code.strip().lower()
+    # Do NOT trust client-supplied headers (X-Tenant-Code, X-Tenant) —
+    # they can be spoofed by any HTTP client.
 
     host = request.get_host().split(':')[0]
+    # Validate host against ALLOWED_HOSTS before using it for tenant lookup
+    allowed_hosts = getattr(settings, 'ALLOWED_HOSTS', [])
+    if allowed_hosts and host not in allowed_hosts and '*' not in allowed_hosts:
+        return None
+
     configured_domain = getattr(settings, 'TENANT_DOMAIN', '').strip()
     if configured_domain and host.endswith(configured_domain):
         subdomain = host[: -len(configured_domain)].rstrip('.')

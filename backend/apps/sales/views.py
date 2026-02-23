@@ -12,6 +12,9 @@ from apps.customers.models import Customer, IrregularCustomer
 from .utils import generate_receipt_pdf, number_to_words
 from decimal import Decimal
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _redirect_no_tenant(request):
@@ -192,9 +195,10 @@ def create_sale_api(request):
         })
     
     except Exception as e:
+        logger.exception("Error creating sale for tenant_db=%s: %s", tenant_db, e)
         return JsonResponse({
             'success': False,
-            'error': str(e)
+            'error': 'An error occurred while processing the sale. Please try again.'
         }, status=400)
 
 @login_required
@@ -303,7 +307,10 @@ def sales_list(request):
 
 @login_required
 def credit_records(request):
-    customers = Customer.objects.filter(current_credit__gt=0)
+    tenant_db = _get_tenant_db_or_redirect(request)
+    if not tenant_db:
+        return _redirect_no_tenant(request)
+    customers = Customer.objects.using(tenant_db).filter(current_credit__gt=0)
     query = request.GET.get('q', '').strip()
     filter_by = request.GET.get('filter_by', 'name')
     sort_by = request.GET.get('sort_by', 'credit_desc')
@@ -367,12 +374,12 @@ def sales_return(request, sale_number):
     sale = get_object_or_404(Sale.objects.using(tenant_db), sale_number=sale_number)
     if request.method == 'POST' and sale.order_status != 'returned':
         for item in sale.items.all():
-            inventory, _ = Inventory.objects.get_or_create(
+            inventory, _ = Inventory.objects.using(tenant_db).get_or_create(
                 product=item.product,
                 defaults={'quantity_in_stock': 0}
             )
             inventory.quantity_in_stock += item.quantity
-            inventory.save()
+            inventory.save(using=tenant_db)
 
         if sale.customer:
             from apps.customers.models import CreditTransaction
@@ -383,8 +390,8 @@ def sales_return(request, sale_number):
                 credit_change = sale.total_amount - sale.paid_amount
             if credit_change > 0:
                 sale.customer.current_credit = max(sale.customer.current_credit - credit_change, 0)
-                sale.customer.save()
-                CreditTransaction.objects.create(
+                sale.customer.save(using=tenant_db)
+                CreditTransaction.objects.using(tenant_db).create(
                     customer=sale.customer,
                     transaction_type='refund',
                     amount=credit_change,
@@ -409,12 +416,12 @@ def sales_cancel(request, sale_number):
     sale = get_object_or_404(Sale.objects.using(tenant_db), sale_number=sale_number)
     if request.method == 'POST' and sale.order_status != 'cancelled':
         for item in sale.items.all():
-            inventory, _ = Inventory.objects.get_or_create(
+            inventory, _ = Inventory.objects.using(tenant_db).get_or_create(
                 product=item.product,
                 defaults={'quantity_in_stock': 0}
             )
             inventory.quantity_in_stock += item.quantity
-            inventory.save()
+            inventory.save(using=tenant_db)
 
         if sale.customer:
             from apps.customers.models import CreditTransaction
@@ -425,8 +432,8 @@ def sales_cancel(request, sale_number):
                 credit_change = sale.total_amount - sale.paid_amount
             if credit_change > 0:
                 sale.customer.current_credit = max(sale.customer.current_credit - credit_change, 0)
-                sale.customer.save()
-                CreditTransaction.objects.create(
+                sale.customer.save(using=tenant_db)
+                CreditTransaction.objects.using(tenant_db).create(
                     customer=sale.customer,
                     transaction_type='refund',
                     amount=credit_change,
@@ -530,7 +537,8 @@ def email_receipt(request, sale_number):
         email.send(fail_silently=False)
         messages.success(request, 'Receipt emailed to customer.')
     except Exception as exc:
-        messages.error(request, f"Unable to send email: {exc}")
+        logger.exception("Failed to send receipt email for sale %s: %s", sale_number, exc)
+        messages.error(request, "Unable to send email. Please try again or contact support.")
 
     return redirect('sales_detail', sale_number=sale.sale_number)
 
@@ -545,8 +553,8 @@ def sales_edit(request, sale_number):
         sale.paid_amount = Decimal(str(request.POST.get('paid_amount', sale.paid_amount)))
         sale.notes = request.POST.get('notes', '')
         sale.payment_status = 'paid' if sale.paid_amount >= sale.total_amount else 'partial'
-        sale.save()
-        _ensure_credit_transaction(sale, getattr(request.user, 'profile', None))
+        sale.save(using=tenant_db)
+        _ensure_credit_transaction(sale, getattr(request.user, 'profile', None), db_alias=tenant_db)
         messages.success(request, 'Sale updated successfully.')
         return redirect('sales_list')
     return render(request, 'sales/sales_edit.html', {'sale': sale})
@@ -560,18 +568,18 @@ def sales_delete(request, sale_number):
     sale = get_object_or_404(Sale.objects.using(tenant_db), sale_number=sale_number)
     if request.method == 'POST':
         for item in sale.items.all():
-            inventory, _ = Inventory.objects.get_or_create(
+            inventory, _ = Inventory.objects.using(tenant_db).get_or_create(
                 product=item.product,
                 defaults={'quantity_in_stock': 0}
             )
             inventory.quantity_in_stock += item.quantity
-            inventory.save()
+            inventory.save(using=tenant_db)
 
         if sale.customer and sale.payment_method == 'credit':
             from apps.customers.models import CreditTransaction
             sale.customer.current_credit -= sale.total_amount
-            sale.customer.save()
-            CreditTransaction.objects.create(
+            sale.customer.save(using=tenant_db)
+            CreditTransaction.objects.using(tenant_db).create(
                 customer=sale.customer,
                 transaction_type='refund',
                 amount=sale.total_amount,

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from apps.accounts.models import UserProfile
 from apps.customers.models import Customer, CreditTransaction, IrregularCustomer
@@ -10,12 +11,12 @@ from apps.tenants.models import Tenant
 class TenantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tenant
+        # db_name, db_user, db_password, db_host, db_port intentionally excluded
         fields = [
             'id',
             'name',
             'code',
             'owner_email',
-            'db_name',
             'access_customers',
             'access_inventory',
             'access_sales',
@@ -30,7 +31,7 @@ class TenantSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ['id', 'name', 'category_type', 'created_date']
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -88,13 +89,31 @@ class InventorySerializer(serializers.ModelSerializer):
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = '__all__'
+        fields = [
+            'id',
+            'customer_name',
+            'phone_number',
+            'secondary_phone_number',
+            'email',
+            'address',
+            'city',
+            'current_credit',
+            'loyalty_points',
+            'is_active',
+            'created_date',
+        ]
 
 
 class IrregularCustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = IrregularCustomer
-        fields = '__all__'
+        fields = [
+            'id',
+            'customer_name',
+            'phone_number',
+            'address',
+            'created_date',
+        ]
 
 
 class CreditTransactionSerializer(serializers.ModelSerializer):
@@ -102,8 +121,18 @@ class CreditTransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CreditTransaction
-        fields = '__all__'
-        read_only_fields = ('customer_name',)
+        fields = [
+            'id',
+            'customer',
+            'customer_name',
+            'transaction_type',
+            'amount',
+            'balance_after',
+            'related_sale',
+            'description',
+            'created_at',
+        ]
+        read_only_fields = ('customer_name', 'created_at')
 
 
 class SaleItemSerializer(serializers.ModelSerializer):
@@ -156,12 +185,23 @@ class SaleSerializer(serializers.ModelSerializer):
 class TenantUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(write_only=True)
     email = serializers.EmailField(write_only=True)
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(
+        write_only=True,
+        min_length=8,
+        style={'input_type': 'password'},
+    )
     role = serializers.ChoiceField(choices=UserProfile.ROLE_CHOICES)
 
     class Meta:
         model = UserProfile
         fields = ['id', 'username', 'email', 'password', 'role', 'phone', 'address', 'city', 'is_active']
+
+    def validate_password(self, value):
+        try:
+            validate_password(value)
+        except Exception as exc:
+            raise serializers.ValidationError(list(exc.messages))
+        return value
 
     def validate_role(self, value):
         tenant = self.context.get('tenant')

@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px;">
+
+  <!-- Page header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title mb-1">My Profile</h2>
+      <p class="page-subtitle mb-0">Manage your account details and view shop information</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-primary btn-sm">
+      &#8592; Dashboard
+    </a>
+  </div>
+
+  <!-- Avatar + name banner -->
+  <div class="card p-4 mb-4" style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(14,165,233,0.06)); border: 1px solid rgba(99,102,241,0.2);">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+      <!-- Initials avatar -->
+      <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#0ea5e9);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="color:#fff;font-size:1.6rem;font-weight:700;letter-spacing:-1px;">
+          {{ user.username|slice:":2"|upper }}
+        </span>
+      </div>
+      <div>
+        <h4 class="mb-1">{{ user.get_full_name|default:user.username }}</h4>
+        <p class="mb-1 text-muted" style="font-size:0.9rem;">{{ user.email }}</p>
+        <span class="badge"
+          style="background:{% if profile.role == 'tenant_admin' %}#6366f1{% elif profile.role == 'manager' %}#0ea5e9{% elif profile.role == 'cashier' %}#10b981{% else %}#64748b{% endif %};color:#fff;font-size:0.78rem;">
+          {{ profile.get_role_display }}
+        </span>
+      </div>
+      <div class="ms-auto d-flex gap-2 flex-wrap">
+        <a href="{% url 'change_password' %}" class="btn btn-outline-primary btn-sm">
+          &#128274; Change Password
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Left: Edit personal details -->
+    <div class="col-lg-6">
+      <div class="card p-4 h-100">
+        <h5 class="mb-3" style="color:#6366f1;">&#128100; Personal Details</h5>
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Username</label>
+            <input type="text" class="form-control" value="{{ user.username }}" disabled>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <input type="email" class="form-control" value="{{ user.email }}" disabled>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Phone</label>
+            <input type="text" name="phone" class="form-control" value="{{ profile.phone }}" placeholder="Phone number">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">City</label>
+            <input type="text" name="city" class="form-control" value="{{ profile.city }}" placeholder="City">
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Address</label>
+            <textarea name="address" class="form-control" rows="2" placeholder="Address">{{ profile.address }}</textarea>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right: Shop / Vendor details (read-only) -->
+    <div class="col-lg-6">
+      <div class="card p-4 h-100">
+        <h5 class="mb-3" style="color:#0ea5e9;">&#127978; Shop Details</h5>
+        {% if vendor %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.06em;">Shop Name</label>
+            <p class="mb-0 fw-semibold">{{ vendor.name }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.06em;">Shop Code</label>
+            <p class="mb-0">
+              <code style="background:#f1f5f9;padding:3px 8px;border-radius:6px;font-size:0.9rem;">{{ vendor.code }}</code>
+            </p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.06em;">Owner Email</label>
+            <p class="mb-0">{{ vendor.owner_email }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.06em;">Status</label>
+            <p class="mb-0">
+              <span class="badge" style="background:{% if vendor.is_active %}#10b981{% else %}#ef4444{% endif %};color:#fff;">
+                {{ vendor.status|capfirst }}
+              </span>
+            </p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.06em;">Active Features</label>
+            <div class="d-flex flex-wrap gap-2 mt-1">
+              {% if vendor.access_inventory %}
+                <span class="badge" style="background:#e0e7ff;color:#4f46e5;">Inventory</span>
+              {% endif %}
+              {% if vendor.access_sales %}
+                <span class="badge" style="background:#dcfce7;color:#16a34a;">Sales</span>
+              {% endif %}
+              {% if vendor.access_customers %}
+                <span class="badge" style="background:#fef9c3;color:#a16207;">Customers</span>
+              {% endif %}
+              {% if vendor.access_reports %}
+                <span class="badge" style="background:#dbeafe;color:#1d4ed8;">Reports</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="mb-1">
+            <label class="form-label fw-semibold text-muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:.06em;">Member Since</label>
+            <p class="mb-0">{{ vendor.created_at|date:"N j, Y" }}</p>
+          </div>
+        {% else %}
+          <div class="text-muted text-center py-4">
+            <p>No shop information available.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div><!-- /row -->
+
+  <!-- Quick actions -->
+  <div class="card p-4 mt-4">
+    <h6 class="fw-bold mb-3 text-muted" style="text-transform:uppercase;font-size:0.78rem;letter-spacing:.06em;">Quick Actions</h6>
+    <div class="d-flex flex-wrap gap-3">
+      <a href="{% url 'change_password' %}" class="action-chip">&#128274; Change Password</a>
+      <a href="{% url 'dashboard' %}" class="action-chip">&#128196; Dashboard</a>
+      <a href="{% url 'logout' %}" class="action-chip" style="background:rgba(239,68,68,0.1);color:#dc2626;">&#128682; Logout</a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

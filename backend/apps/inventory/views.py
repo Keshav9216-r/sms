@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
 from .models import Product, Category, Inventory
 import barcode
 from barcode.writer import ImageWriter
@@ -239,8 +240,24 @@ def category_add(request):
         category_type = request.POST.get('category_type')
         Category.objects.create(name=name, category_type=category_type)
         return redirect('category_list')
-    
+
     return render(request, 'inventory/category_add.html')
+
+@login_required
+@require_POST
+def category_add_ajax(request):
+    """Create a category via AJAX and return JSON. Used by the inline modal on product_add."""
+    name = request.POST.get('name', '').strip()
+    category_type = request.POST.get('category_type', '').strip()
+
+    if not name or category_type not in ('stationery', 'books'):
+        return JsonResponse({'error': 'Name and a valid category type are required.'}, status=400)
+
+    if Category.objects.filter(name__iexact=name).exists():
+        return JsonResponse({'error': f'A category named "{name}" already exists.'}, status=400)
+
+    category = Category.objects.create(name=name, category_type=category_type)
+    return JsonResponse({'id': category.id, 'name': category.name, 'category_type': category.category_type})
 
 @login_required
 def category_edit(request, category_id):

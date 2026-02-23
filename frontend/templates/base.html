@@ -251,16 +251,58 @@
                     {% if user.is_authenticated and user.profile.role == 'superadmin' %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'superadmin_dashboard' %}">Vendors</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'reports_dashboard' %}">Reports</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
                     {% else %}
                         <li class="nav-item"><a class="nav-link" href="/inventory/">Inventory</a></li>
                         <li class="nav-item"><a class="nav-link" href="/sales/">Sales</a></li>
                         <li class="nav-item"><a class="nav-link" href="/reports/">Reports</a></li>
                         <li class="nav-item"><a class="nav-link" href="/customers/">Customers</a></li>
-                    {% endif %}
-                    {% if user.is_authenticated %}
-                        <li class="nav-item"><a class="nav-link" href="/accounts/logout/">Logout</a></li>
-                    {% else %}
+                        {% if user.is_authenticated %}
+                        <li class="nav-item dropdown ms-2">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 px-2 py-1"
+                               href="#" id="profileDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false"
+                               style="background:rgba(255,255,255,0.15);border-radius:999px;">
+                                <span style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.25);display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0;">
+                                    {{ user.username|slice:":2"|upper }}
+                                </span>
+                                <span style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ user.username }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end mt-2"
+                                style="min-width:210px;border-radius:14px;box-shadow:0 16px 40px rgba(15,23,42,0.15);border:1px solid #e2e8f0;padding:6px;">
+                                <!-- User info header -->
+                                <li>
+                                    <div class="px-3 py-2 mb-1" style="border-bottom:1px solid #f1f5f9;">
+                                        <p class="mb-0 fw-semibold" style="font-size:0.85rem;color:#0f172a;">{{ user.username }}</p>
+                                        <p class="mb-0" style="font-size:0.76rem;color:#64748b;">
+                                            {% if user.profile.role %}{{ user.profile.get_role_display }}{% endif %}
+                                        </p>
+                                    </div>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2"
+                                       href="{% url 'profile' %}" style="font-size:0.88rem;">
+                                        &#128100; My Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2"
+                                       href="{% url 'change_password' %}" style="font-size:0.88rem;">
+                                        &#128274; Change Password
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2"
+                                       href="{% url 'logout' %}" style="font-size:0.88rem;color:#dc2626;">
+                                        &#128682; Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        {% else %}
                         <li class="nav-item"><a class="nav-link" href="/accounts/login/">Login</a></li>
+                        {% endif %}
                     {% endif %}
                 </ul>
             </div>

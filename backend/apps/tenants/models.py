@@ -14,8 +14,13 @@ class Tenant(models.Model):
     name = models.CharField(max_length=150)
     code = models.SlugField(unique=True)
     owner_email = models.EmailField()
+    pan_number = models.CharField(max_length=30, blank=True, default='')
     
     # Database configuration for this vendor
+    # WARNING: db_password is stored as plaintext. In production, use an
+    # encrypted field (e.g. django-encrypted-model-fields) or store credentials
+    # in a secrets manager (e.g. AWS Secrets Manager, HashiCorp Vault) and
+    # reference them by a secret ID here instead of the raw password.
     db_name = models.CharField(max_length=120)
     db_user = models.CharField(max_length=120, blank=True)
     db_password = models.CharField(max_length=120, blank=True)
