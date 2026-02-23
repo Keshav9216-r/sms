@@ -168,7 +168,7 @@ SESSION_COOKIE_SECURE = not DEBUG  # HTTPS only in production
 
 # CSRF settings
 CSRF_COOKIE_HTTPONLY = False  # Must be False so JS can read it for AJAX
-CSRF_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = not DEBUG  # HTTPS only in production
 
 # Security headers (active in production where DEBUG=False)

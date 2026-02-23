@@ -62,11 +62,19 @@ class TenantMiddleware:
 
 
 class TenantAccessMiddleware:
-    SECTION_RULES = (
+    # Tenant-level flags
+    TENANT_RULES = (
         ('/customers/', 'access_customers'),
         ('/inventory/', 'access_inventory'),
-        ('/sales/', 'access_sales'),
-        ('/reports/', 'access_reports'),
+        ('/sales/',     'access_sales'),
+        ('/reports/',   'access_reports'),
+    )
+    # Corresponding per-user flags on UserProfile
+    USER_RULES = (
+        ('/customers/', 'can_access_customers'),
+        ('/inventory/', 'can_access_inventory'),
+        ('/sales/',     'can_access_sales'),
+        ('/reports/',   'can_access_reports'),
     )
 
     def __init__(self, get_response):
@@ -75,7 +83,21 @@ class TenantAccessMiddleware:
     def __call__(self, request):
         tenant = getattr(request, 'tenant', None)
         if tenant:
-            for prefix, flag in self.SECTION_RULES:
+            # 1. Tenant-level module gate
+            for prefix, flag in self.TENANT_RULES:
                 if request.path.startswith(prefix) and not getattr(tenant, flag, True):
-                    return HttpResponseForbidden('Access denied for this section.')
+                    return HttpResponseForbidden('This module is not enabled for your shop.')
+
+            # 2. Per-user module gate (only for authenticated staff)
+            if getattr(request, 'user', None) and request.user.is_authenticated:
+                tenant_db = getattr(request, 'tenant_db', None)
+                if tenant_db:
+                    from apps.accounts.models import UserProfile
+                    profile = UserProfile.objects.using(tenant_db).filter(user=request.user).first()
+                    if profile:
+                        for prefix, flag in self.USER_RULES:
+                            if request.path.startswith(prefix) and not getattr(profile, flag, True):
+                                return HttpResponseForbidden('You do not have access to this module.')
+
         return self.get_response(request)
+

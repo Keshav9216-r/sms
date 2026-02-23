@@ -10,5 +10,9 @@ urlpatterns = [
 	path('', views.dashboard, name='dashboard'),
 	path('profile/', views.profile, name='profile'),
 	path('change-password/', views.change_password, name='change_password'),
+	path('users/', views.manage_users, name='manage_users'),
+	path('users/create/', views.create_user, name='create_user'),
+	path('users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
 ]
+
 
