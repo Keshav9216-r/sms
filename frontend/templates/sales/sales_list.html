@@ -16,7 +16,31 @@
 
     <div class="card mb-4">
         <div class="card-body">
-            <form method="get">
+            <form method="get" class="compact-form">
+                <style>
+                    .compact-form .form-label {
+                        font-size: 0.8rem;
+                        margin-bottom: 0;
+                    }
+                    .compact-form .form-select,
+                    .compact-form .form-control {
+                        font-size: 0.85rem;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                    }
+                    .compact-form .inline-field {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .compact-form .inline-field .form-label {
+                        min-width: 110px;
+                        white-space: nowrap;
+                    }
+                    .compact-form .inline-field .field-control {
+                        flex: 1;
+                    }
+                </style>
                 <div class="row g-2 align-items-end">
                     <div class="col-md-7">
                         <div class="input-group input-group-sm">
@@ -39,26 +63,32 @@
                     </div>
                 </div>
                 <div class="row g-2 align-items-end mt-1">
-                    <div class="col-md-3">
+                    <div class="col-md-3 inline-field">
                         <label class="form-label">Sort By</label>
-                        <select name="sort_by" class="form-select form-select-sm">
-                            <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date (Newest)</option>
-                            <option value="customer_asc" {% if sort_by == 'customer_asc' %}selected{% endif %}>Customer (A → Z)</option>
-                            <option value="customer_desc" {% if sort_by == 'customer_desc' %}selected{% endif %}>Customer (Z → A)</option>
-                            <option value="phone" {% if sort_by == 'phone' %}selected{% endif %}>Customer Phone</option>
-                            <option value="amount_asc" {% if sort_by == 'amount_asc' %}selected{% endif %}>Total (Low → High)</option>
-                            <option value="amount_desc" {% if sort_by == 'amount_desc' %}selected{% endif %}>Total (High → Low)</option>
-                            <option value="sale_number_asc" {% if sort_by == 'sale_number_asc' %}selected{% endif %}>Sale # (A → Z)</option>
-                            <option value="sale_number_desc" {% if sort_by == 'sale_number_desc' %}selected{% endif %}>Sale # (Z → A)</option>
-                        </select>
+                        <div class="field-control">
+                            <select name="sort_by" class="form-select form-select-sm">
+                                <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date (Newest)</option>
+                                <option value="customer_asc" {% if sort_by == 'customer_asc' %}selected{% endif %}>Customer (A → Z)</option>
+                                <option value="customer_desc" {% if sort_by == 'customer_desc' %}selected{% endif %}>Customer (Z → A)</option>
+                                <option value="phone" {% if sort_by == 'phone' %}selected{% endif %}>Customer Phone</option>
+                                <option value="amount_asc" {% if sort_by == 'amount_asc' %}selected{% endif %}>Total (Low → High)</option>
+                                <option value="amount_desc" {% if sort_by == 'amount_desc' %}selected{% endif %}>Total (High → Low)</option>
+                                <option value="sale_number_asc" {% if sort_by == 'sale_number_asc' %}selected{% endif %}>Sale # (A → Z)</option>
+                                <option value="sale_number_desc" {% if sort_by == 'sale_number_desc' %}selected{% endif %}>Sale # (Z → A)</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3 inline-field">
                         <label class="form-label">From Date</label>
-                        <input type="date" name="from_date" class="form-control form-control-sm" value="{{ from_date }}">
+                        <div class="field-control">
+                            <input type="date" name="from_date" class="form-control form-control-sm" value="{{ from_date }}">
+                        </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3 inline-field">
                         <label class="form-label">To Date</label>
-                        <input type="date" name="to_date" class="form-control form-control-sm" value="{{ to_date }}">
+                        <div class="field-control">
+                            <input type="date" name="to_date" class="form-control form-control-sm" value="{{ to_date }}">
+                        </div>
                     </div>
                     <div class="col-md-3 d-flex gap-2">
                         <button type="submit" class="btn btn-outline-primary btn-sm">Apply Sort</button>

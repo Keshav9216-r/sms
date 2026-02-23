@@ -14,6 +14,7 @@ class Tenant(models.Model):
     name = models.CharField(max_length=150)
     code = models.SlugField(unique=True)
     owner_email = models.EmailField()
+    pan_number = models.CharField(max_length=30, blank=True)
     
     # Database configuration for this vendor
     db_name = models.CharField(max_length=120)

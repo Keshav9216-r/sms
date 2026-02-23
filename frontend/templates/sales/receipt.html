@@ -21,6 +21,12 @@
     <div class="card mb-4">
         <div class="card-body">
             <div class="row g-3">
+                <div class="col-12">
+                    <div><strong>Vendor:</strong> <strong>{{ vendor_info.name|default:"—" }}</strong></div>
+                    <div><strong>Address:</strong> <strong>{{ vendor_info.address|default:"—" }}</strong></div>
+                    <div><strong>Phone:</strong> <strong>{{ vendor_info.phone|default:"—" }}</strong></div>
+                    <div><strong>PAN:</strong> <strong>{{ vendor_info.pan|default:"—" }}</strong></div>
+                </div>
                 <div class="col-md-4">
                     <div><strong>Purchased Date:</strong> <strong>{{ sale.sale_date|date:"Y-m-d H:i" }}</strong></div>
                     <div><strong>Payment:</strong> <strong>{{ sale.get_payment_method_display }}</strong></div>

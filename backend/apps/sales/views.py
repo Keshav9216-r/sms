@@ -6,9 +6,11 @@ from django.core.mail import EmailMessage
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 from .models import Sale, SaleItem
 from apps.inventory.models import Product, Inventory
 from apps.customers.models import Customer, IrregularCustomer
+from apps.accounts.models import UserProfile
 from .utils import generate_receipt_pdf, number_to_words
 from decimal import Decimal
 import json
@@ -55,6 +57,32 @@ def _ensure_credit_transaction(sale, created_by=None, db_alias=None):
         description='Sale on credit',
         created_by=created_by,
     )
+
+
+def _get_vendor_receipt_info(request, tenant_db):
+    tenant = getattr(request, 'tenant', None)
+    info = {'name': None, 'address': None, 'phone': None, 'pan': None}
+    if not tenant or not tenant_db:
+        return info
+    info['name'] = tenant.name
+    info['pan'] = getattr(tenant, 'pan_number', '') or ''
+
+    admin_user = None
+    if tenant.owner_email:
+        admin_user = get_user_model().objects.using(tenant_db).filter(
+            email__iexact=tenant.owner_email
+        ).first()
+
+    profile = None
+    if admin_user:
+        profile = UserProfile.objects.using(tenant_db).filter(user=admin_user).first()
+    if not profile:
+        profile = UserProfile.objects.using(tenant_db).filter(role='tenant_admin').order_by('id').first()
+    if profile:
+        address_parts = [profile.address, profile.city]
+        info['address'] = ', '.join([part for part in address_parts if part])
+        info['phone'] = profile.phone
+    return info
 
 @login_required
 def sales_home(request):
@@ -205,10 +233,12 @@ def print_receipt(request, sale_number):
     sale = get_object_or_404(Sale.objects.using(tenant_db), sale_number=sale_number)
     amount_in_words = number_to_words(sale.total_amount)
     change_due = max(sale.paid_amount - sale.total_amount, 0)
+    vendor_info = _get_vendor_receipt_info(request, tenant_db)
     return render(request, 'sales/receipt.html', {
         'sale': sale,
         'amount_in_words': amount_in_words,
         'change_due': change_due,
+        'vendor_info': vendor_info,
     })
 
 @login_required
@@ -217,7 +247,8 @@ def receipt_pdf(request, sale_number):
     if not tenant_db:
         return _redirect_no_tenant(request)
     sale = get_object_or_404(Sale.objects.using(tenant_db), sale_number=sale_number)
-    buffer = generate_receipt_pdf(sale)
+    vendor_info = _get_vendor_receipt_info(request, tenant_db)
+    buffer = generate_receipt_pdf(sale, vendor_info)
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
     disposition = 'attachment' if request.GET.get('download') == '1' else 'inline'
     response['Content-Disposition'] = f'{disposition}; filename="receipt_{sale_number}.pdf"'
@@ -514,7 +545,8 @@ def email_receipt(request, sale_number):
         messages.error(request, 'Customer email is not available for this sale.')
         return redirect('sales_detail', sale_number=sale.sale_number)
 
-    pdf_buffer = generate_receipt_pdf(sale)
+    vendor_info = _get_vendor_receipt_info(request, tenant_db)
+    pdf_buffer = generate_receipt_pdf(sale, vendor_info)
     email = EmailMessage(
         subject=f"Receipt {sale.receipt_number or sale.sale_number}",
         body="Please find your receipt attached. Thank you for your purchase!",

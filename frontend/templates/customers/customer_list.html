@@ -14,7 +14,31 @@
         </div>
     </div>
 
-    <form method="GET" class="mb-4">
+    <form method="GET" class="mb-4 compact-form">
+        <style>
+            .compact-form .form-label {
+                font-size: 0.8rem;
+                margin-bottom: 0;
+            }
+            .compact-form .form-select,
+            .compact-form .form-control {
+                font-size: 0.85rem;
+                padding-top: 6px;
+                padding-bottom: 6px;
+            }
+            .compact-form .inline-field {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .compact-form .inline-field .form-label {
+                min-width: 110px;
+                white-space: nowrap;
+            }
+            .compact-form .inline-field .field-control {
+                flex: 1;
+            }
+        </style>
         <div class="card p-3">
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
@@ -39,14 +63,16 @@
             </div>
         </div>
         <div class="row g-2 align-items-end mt-1">
-            <div class="col-md-4">
+            <div class="col-md-4 inline-field">
                 <label class="form-label">Sort By</label>
-                <select name="sort_by" class="form-select form-select-sm">
-                    <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A → Z)</option>
-                    <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z → A)</option>
-                    <option value="credit_asc" {% if sort_by == 'credit_asc' %}selected{% endif %}>Credit (Low → High)</option>
-                    <option value="credit_desc" {% if sort_by == 'credit_desc' %}selected{% endif %}>Credit (High → Low)</option>
-                </select>
+                <div class="field-control">
+                    <select name="sort_by" class="form-select form-select-sm">
+                        <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A → Z)</option>
+                        <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z → A)</option>
+                        <option value="credit_asc" {% if sort_by == 'credit_asc' %}selected{% endif %}>Credit (Low → High)</option>
+                        <option value="credit_desc" {% if sort_by == 'credit_desc' %}selected{% endif %}>Credit (High → Low)</option>
+                    </select>
+                </div>
             </div>
             <div class="col-md-3 d-flex gap-2">
                 <button type="submit" class="btn btn-outline-primary btn-sm">Apply Sort</button>

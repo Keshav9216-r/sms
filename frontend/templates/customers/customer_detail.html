@@ -51,15 +51,42 @@
             <h5 class="mb-0">Receive Payment</h5>
         </div>
         <div class="card-body">
-            <form method="post" action="/customers/{{ customer.phone_number }}/pay/" class="row g-3">
+            <form method="post" action="/customers/{{ customer.phone_number }}/pay/" class="row g-3 compact-form">
                 {% csrf_token %}
-                <div class="col-md-4">
+                <style>
+                    .compact-form .form-label {
+                        font-size: 0.8rem;
+                        margin-bottom: 0;
+                    }
+                    .compact-form .form-control {
+                        font-size: 0.85rem;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                    }
+                    .compact-form .inline-field {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .compact-form .inline-field .form-label {
+                        min-width: 140px;
+                        white-space: nowrap;
+                    }
+                    .compact-form .inline-field .field-control {
+                        flex: 1;
+                    }
+                </style>
+                <div class="col-md-4 inline-field">
                     <label class="form-label">Amount</label>
-                    <input type="number" name="amount" step="0.01" min="0" max="{{ customer.current_credit }}" class="form-control" required>
+                    <div class="field-control">
+                        <input type="number" name="amount" step="0.01" min="0" max="{{ customer.current_credit }}" class="form-control" required>
+                    </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 inline-field">
                     <label class="form-label">Description (optional)</label>
-                    <input type="text" name="description" class="form-control" placeholder="Payment received">
+                    <div class="field-control">
+                        <input type="text" name="description" class="form-control" placeholder="Payment received">
+                    </div>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-success w-100">Apply</button>
