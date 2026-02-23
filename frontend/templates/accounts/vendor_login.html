@@ -4,167 +4,89 @@
 
 {% block content %}
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
     .login-page {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
+        min-height: calc(100vh - 120px);
         display: flex;
         justify-content: center;
         align-items: center;
+        padding: 20px;
         margin: -24px;
+        background: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #0ea5e9 100%);
     }
-
-    .login-container {
-        background: white;
-        padding: 40px;
-        border-radius: 10px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    .login-card {
+        background: #ffffff;
+        padding: 44px 40px;
+        border-radius: 20px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
         width: 100%;
         max-width: 420px;
     }
-
-    .login-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .login-header h1 {
-        color: #333;
-        font-size: 28px;
-        margin-bottom: 5px;
-    }
-
-    .login-header p {
-        color: #666;
-        font-size: 14px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        color: #333;
-        font-weight: 500;
-        font-size: 14px;
-    }
-
-    .form-group input[type="text"],
-    .form-group input[type="password"] {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 14px;
-        transition: border-color 0.3s;
-    }
-
-    .form-group input[type="text"]:focus,
-    .form-group input[type="password"]:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-    }
-
-    .login-btn {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .login-logo {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
         color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
+        margin: 0 auto 18px;
     }
-
-    .login-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .login-btn:active {
-        transform: translateY(0);
-    }
-
-    .error-messages {
-        background: #f8d7da;
-        color: #721c24;
-        padding: 12px;
-        border-radius: 5px;
-        margin-bottom: 20px;
-        font-size: 14px;
-    }
-
-    .error-messages ul {
-        margin-left: 20px;
-    }
-
-    .error-messages li {
-        margin: 5px 0;
-    }
-
-    .switch-link {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 14px;
-    }
-
-    .switch-link a {
-        color: #667eea;
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .switch-link a:hover {
-        text-decoration: underline;
-    }
+    .login-header { text-align: center; margin-bottom: 28px; }
+    .login-header h1 { color: #0f172a; font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; }
+    .login-header p { color: #64748b; font-size: 0.9rem; }
+    .login-form-group { margin-bottom: 18px; }
+    .login-form-group label { display: block; margin-bottom: 6px; color: #1e293b; font-weight: 600; font-size: 0.875rem; }
+    .login-form-group .input-icon-wrap { position: relative; }
+    .login-form-group .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.95rem; }
+    .login-form-group input[type="text"],
+    .login-form-group input[type="password"] { width: 100%; padding: 11px 12px 11px 36px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; outline: none; background: #f8fafc; }
+    .login-form-group input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); background: #fff; }
+    .login-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .login-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35); }
+    .error-messages { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 14px; border-radius: 10px; margin-bottom: 18px; font-size: 0.875rem; }
+    .error-messages ul { margin: 0; padding-left: 16px; }
+    .switch-link { text-align: center; margin-top: 18px; font-size: 0.875rem; color: #475569; }
+    .switch-link a { color: #6366f1; text-decoration: none; font-weight: 600; }
+    .switch-link a:hover { text-decoration: underline; }
 </style>
 
 <div class="login-page">
-    <div class="login-container">
+    <div class="login-card">
+        <div class="login-logo"><i class="fa-solid fa-building"></i></div>
         <div class="login-header">
             <h1>Vendor Login</h1>
-            <p>Login as a vendor admin</p>
+            <p>Sign in as a vendor admin</p>
         </div>
 
         {% if messages %}
             <div class="error-messages">
-                <ul>
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                    {% endfor %}
-                </ul>
+                <ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
             </div>
         {% endif %}
 
         <form method="POST" action="">
             {% csrf_token %}
-
-            <div class="form-group">
+            <div class="login-form-group">
                 <label for="id_identifier">Shop Code or Email</label>
-                <input type="text" id="id_identifier" name="identifier" required autofocus>
+                <div class="input-icon-wrap">
+                    <i class="fa-solid fa-shop input-icon"></i>
+                    <input type="text" id="id_identifier" name="identifier" required autofocus placeholder="Enter shop code or email">
+                </div>
             </div>
-
-            <div class="form-group">
+            <div class="login-form-group">
                 <label for="id_password">Password</label>
-                <input type="password" id="id_password" name="password" required>
+                <div class="input-icon-wrap">
+                    <i class="fa-solid fa-lock input-icon"></i>
+                    <input type="password" id="id_password" name="password" required placeholder="Enter your password">
+                </div>
             </div>
-
-            <button type="submit" class="login-btn">Login</button>
+            <button type="submit" class="login-btn"><i class="fa-solid fa-right-to-bracket me-2"></i>Sign In</button>
         </form>
 
         <div class="switch-link">
-            <a href="/accounts/user-login/">User Login</a>
+            <a href="/accounts/user-login/"><i class="fa-solid fa-user me-1"></i>User Login</a>
         </div>
     </div>
 </div>

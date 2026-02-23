@@ -116,26 +116,52 @@
             <tbody>
                 {% for sale in sales %}
                 <tr>
-                    <td>{{ sale.sale_number }}</td>
+                    <td><span class="fw-semibold">{{ sale.sale_number }}</span></td>
                     <td>{{ sale.sale_date|date:"M d, Y H:i" }}</td>
                     <td>
                         {% if sale.irregular_customer %}
-                            IR: {{ sale.irregular_customer.customer_name }}
+                            <span class="badge bg-secondary">IR</span> {{ sale.irregular_customer.customer_name }}
                         {% else %}
                             {{ sale.customer.customer_name|default:"Walk-in" }}
                         {% endif %}
                     </td>
-                    <td>Rs. {{ sale.total_amount }}</td>
+                    <td class="fw-semibold">Rs. {{ sale.total_amount }}</td>
                     <td>{{ sale.payment_method }}</td>
-                    <td>{{ sale.payment_status }}</td>
-                    <td>{{ sale.order_status }}</td>
                     <td>
-                        <a href="/sales/{{ sale.sale_number }}/" class="btn btn-sm btn-info">View</a>
-                        <a href="/sales/receipt/{{ sale.sale_number }}/" class="btn btn-sm btn-success">Receipt</a>
-                        <a href="/sales/receipt/{{ sale.sale_number }}/pdf/" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">PDF</a>
-                        <a href="/sales/receipt/{{ sale.sale_number }}/pdf/?download=1" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" download>Download</a>
-                        <a href="/sales/edit/{{ sale.sale_number }}/" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="/sales/delete/{{ sale.sale_number }}/" class="btn btn-sm btn-danger">Delete</a>
+                        {% if sale.payment_status == 'Paid' or sale.payment_status == 'paid' %}
+                            <span class="badge badge-paid">Paid</span>
+                        {% elif sale.payment_status == 'Pending' or sale.payment_status == 'pending' %}
+                            <span class="badge badge-pending">Pending</span>
+                        {% elif sale.payment_status == 'Credit' or sale.payment_status == 'credit' %}
+                            <span class="badge badge-credit">Credit</span>
+                        {% elif sale.payment_status == 'Cancelled' or sale.payment_status == 'cancelled' %}
+                            <span class="badge badge-cancelled">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ sale.payment_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if sale.order_status == 'Completed' or sale.order_status == 'completed' %}
+                            <span class="badge badge-completed">Completed</span>
+                        {% elif sale.order_status == 'Processing' or sale.order_status == 'processing' %}
+                            <span class="badge badge-processing">Processing</span>
+                        {% elif sale.order_status == 'Returned' or sale.order_status == 'returned' %}
+                            <span class="badge badge-returned">Returned</span>
+                        {% elif sale.order_status == 'Cancelled' or sale.order_status == 'cancelled' %}
+                            <span class="badge badge-cancelled">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ sale.order_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            <a href="/sales/{{ sale.sale_number }}/" class="btn btn-sm btn-info" title="View"><i class="fa-solid fa-eye"></i></a>
+                            <a href="/sales/receipt/{{ sale.sale_number }}/" class="btn btn-sm btn-success" title="Receipt"><i class="fa-solid fa-receipt"></i></a>
+                            <a href="/sales/receipt/{{ sale.sale_number }}/pdf/" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" title="PDF"><i class="fa-solid fa-file-pdf"></i></a>
+                            <a href="/sales/receipt/{{ sale.sale_number }}/pdf/?download=1" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" download title="Download"><i class="fa-solid fa-download"></i></a>
+                            <a href="/sales/edit/{{ sale.sale_number }}/" class="btn btn-sm btn-warning" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                            <a href="/sales/delete/{{ sale.sale_number }}/" class="btn btn-sm btn-danger" title="Delete"><i class="fa-solid fa-trash"></i></a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
