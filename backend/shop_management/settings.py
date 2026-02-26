@@ -3,6 +3,19 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from django.core.management.utils import get_random_secret_key
+
+
+def env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def env_list(name, default=''):
+    value = os.getenv(name, default)
+    return [item.strip() for item in value.split(',') if item.strip()]
 
 # Load environment variables from .env file
 load_dotenv()
@@ -10,19 +23,34 @@ load_dotenv()
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DJANGO_ENV = os.getenv('DJANGO_ENV', 'development').strip().lower()
+IS_PRODUCTION = DJANGO_ENV == 'production'
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
     if os.getenv('DJANGO_ENV') == 'production':
         raise ValueError("SECRET_KEY environment variable must be set in production.")
-    # Only fall back to insecure key in non-production environments
-    SECRET_KEY = 'django-insecure-dev-key-only-for-development-do-not-use-in-production'
+    SECRET_KEY = get_random_secret_key()
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', '').strip().lower() == 'true'
+DEBUG = env_bool('DEBUG', default=not IS_PRODUCTION)
+if IS_PRODUCTION and DEBUG:
+    raise ValueError("DEBUG must be False in production.")
 
 # Only allow specific hosts in production
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = env_list(
+    'ALLOWED_HOSTS',
+    default='localhost,127.0.0.1' if not IS_PRODUCTION else '',
+)
+if IS_PRODUCTION and not ALLOWED_HOSTS:
+    raise ValueError("ALLOWED_HOSTS must be set in production.")
+
+CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS', default='')
+
+USE_X_FORWARDED_HOST = env_bool('USE_X_FORWARDED_HOST', default=IS_PRODUCTION)
+if env_bool('USE_SECURE_PROXY_SSL_HEADER', default=IS_PRODUCTION):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 INSTALLED_APPS = [
@@ -173,10 +201,10 @@ CSRF_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_SECURE = not DEBUG  # HTTPS only in production
 
 # Security headers (active in production where DEBUG=False)
-SECURE_SSL_REDIRECT = not DEBUG
-SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
-SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
-SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', default=not DEBUG)
+SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000' if not DEBUG else '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=not DEBUG)
+SECURE_HSTS_PRELOAD = env_bool('SECURE_HSTS_PRELOAD', default=not DEBUG)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'

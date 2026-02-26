@@ -1,7 +1,11 @@
 from datetime import timedelta
+import logging
 
 from django.db.models import F
 from django.utils import timezone
+
+
+logger = logging.getLogger(__name__)
 
 
 def notifications(request):
@@ -43,7 +47,7 @@ def notifications(request):
                 'url': '/inventory/',
             })
     except Exception:
-        pass
+        logger.exception("Failed to build low-stock notifications")
 
     # ── 2. Customers with due amount > 10 000 ────────────────────────────────
     try:
@@ -63,7 +67,7 @@ def notifications(request):
                 'url': '/customers/',
             })
     except Exception:
-        pass
+        logger.exception("Failed to build large-due notifications")
 
     # ── 3. Overdue payments (pending/partial older than 30 days) ─────────────
     try:
@@ -88,7 +92,7 @@ def notifications(request):
                 'url': '/sales/',
             })
     except Exception:
-        pass
+        logger.exception("Failed to build overdue notifications")
 
     return {
         'notifications': items,

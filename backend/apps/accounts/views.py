@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 from .models import UserProfile, ChangeLog
 from apps.tenants.models import Tenant
 from apps.tenants.utils import set_current_tenant, ensure_tenant_schema
@@ -52,7 +53,7 @@ def log_change(request, action, model_name, record_id, description, before=None,
                 after_data=json.dumps(after) if after else '',
             )
         except Exception:
-            pass
+            logger.exception("Failed to write ChangeLog entry for action '%s'", action)
 
 
 # ─── Authentication ────────────────────────────────────────────────────────────
@@ -206,6 +207,7 @@ def superadmin_login_view(request):
     return _handle_login(request, 'accounts/superadmin_login.html', allow_superadmin=True)
 
 
+@require_POST
 def logout_view(request):
     logger.info("User '%s' logged out.", request.user.username if request.user.is_authenticated else 'anonymous')
     logout(request)

@@ -16,6 +16,8 @@ class Command(BaseCommand):
         parser.add_argument('--superadmin-password', default='superadmin123', help='Superadmin password')
         parser.add_argument('--admin-email', default='admin@demo-shop.com', help='Tenant admin email')
         parser.add_argument('--admin-password', default='admin123', help='Tenant admin password')
+        parser.add_argument('--manager-password', default='', help='Manager password (defaults to admin password)')
+        parser.add_argument('--cashier-password', default='', help='Cashier password (defaults to admin password)')
 
     def handle(self, *args, **options):
         UserModel = get_user_model()
@@ -61,6 +63,9 @@ class Command(BaseCommand):
         db_alias = ensure_tenant_schema(tenant)
         set_current_tenant(tenant, db_alias)
 
+        manager_password = options['manager_password'] or options['admin_password']
+        cashier_password = options['cashier_password'] or options['admin_password']
+
         tenant_admin_email = options['admin_email'].lower()
         if not UserModel.objects.using(db_alias).filter(email__iexact=tenant_admin_email).exists():
             tenant_admin = UserModel.objects.db_manager(db_alias).create_user(
@@ -81,7 +86,7 @@ class Command(BaseCommand):
             manager = UserModel.objects.db_manager(db_alias).create_user(
                 username=manager_email,
                 email=manager_email,
-                password='manager123',
+                password=manager_password,
                 is_staff=True,
             )
             UserProfile.objects.using(db_alias).create(
@@ -95,7 +100,7 @@ class Command(BaseCommand):
             cashier = UserModel.objects.db_manager(db_alias).create_user(
                 username=cashier_email,
                 email=cashier_email,
-                password='cashier123',
+                password=cashier_password,
             )
             UserProfile.objects.using(db_alias).create(
                 user=cashier,

@@ -24,7 +24,7 @@ def _redirect_no_tenant(request):
             messages.error(request, 'Tenant access required for sales pages.')
             return redirect('superadmin_dashboard')
     except Exception:
-        pass
+        logger.debug("Unable to evaluate superadmin role in _redirect_no_tenant", exc_info=True)
     messages.error(request, 'Tenant access required. Please log in as a vendor.')
     return redirect('login')
 

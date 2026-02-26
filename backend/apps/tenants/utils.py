@@ -1,4 +1,5 @@
 import os
+import re
 import threading
 from django.conf import settings
 from django.core.management import call_command
@@ -20,16 +21,26 @@ def get_current_tenant_db():
     return getattr(_local, 'db_alias', None)
 
 
+def _safe_tenant_db_filename(raw_name, tenant_id):
+    candidate = os.path.basename((raw_name or '').strip()).replace('\x00', '')
+    if not candidate or not re.fullmatch(r'[A-Za-z0-9._-]{1,100}', candidate):
+        candidate = f"tenant_{tenant_id}"
+    if not candidate.endswith('.sqlite3'):
+        candidate = f"{candidate}.sqlite3"
+    return candidate
+
+
 def build_tenant_db_config(tenant):
     base_config = settings.DATABASES.get('default', {}).copy()
     tenant_db_dir = getattr(settings, 'TENANT_DB_DIR', None)
     if not tenant_db_dir:
         tenant_db_dir = os.path.join(settings.BASE_DIR, 'tenant_dbs')
+    tenant_db_dir = os.path.abspath(tenant_db_dir)
     os.makedirs(tenant_db_dir, exist_ok=True)
-    db_filename = tenant.db_name or f"tenant_{tenant.id}"
-    if not db_filename.endswith('.sqlite3'):
-        db_filename = f"{db_filename}.sqlite3"
-    db_path = os.path.join(tenant_db_dir, db_filename)
+    db_filename = _safe_tenant_db_filename(tenant.db_name, tenant.id)
+    db_path = os.path.abspath(os.path.join(tenant_db_dir, db_filename))
+    if not db_path.startswith(f"{tenant_db_dir}{os.sep}"):
+        raise ValueError("Invalid tenant database path.")
     base_config.update(
         {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -67,7 +78,9 @@ def provision_tenant_database(tenant):
     db_path = db_config.get('NAME')
     if db_path:
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        open(db_path, 'a').close()
+        if not os.path.exists(db_path):
+            open(db_path, 'a').close()
+        os.chmod(db_path, 0o600)
     return
 
 
