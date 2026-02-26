@@ -62,7 +62,11 @@ class TenantViewSet(viewsets.ModelViewSet):
 
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ('GET', 'HEAD', 'OPTIONS'):
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsTenantManager()]
 
     def get_queryset(self):
         tenant_db = _get_tenant_db(self.request)
@@ -73,7 +77,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ('GET', 'HEAD', 'OPTIONS'):
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsTenantManager()]
 
     def get_queryset(self):
         tenant_db = _get_tenant_db(self.request)
@@ -84,7 +92,11 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 class InventoryViewSet(viewsets.ModelViewSet):
     serializer_class = InventorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ('GET', 'HEAD', 'OPTIONS'):
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsTenantManager()]
 
     def get_queryset(self):
         tenant_db = _get_tenant_db(self.request)

@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
@@ -9,6 +11,8 @@ from apps.accounts.views import is_staff_level, log_change
 import barcode
 from barcode.writer import ImageWriter
 import io
+
+logger = logging.getLogger(__name__)
 
 
 def _generate_unique_barcode(base_barcode, exclude_id=None):
@@ -154,7 +158,8 @@ def product_add(request):
                 image=image,
             )
         except Exception as exc:
-            messages.error(request, f"Unable to save product: {exc}")
+            logger.exception("Error saving new product: %s", exc)
+            messages.error(request, 'Unable to save product. Please try again.')
             return redirect('product_add')
         
         Inventory.objects.create(product=product, quantity_in_stock=initial_quantity)
@@ -209,7 +214,8 @@ def product_edit(request, pk):
             product.save()
             return redirect('product_list')
         except Exception as exc:
-            messages.error(request, f"Unable to save product: {exc}")
+            logger.exception("Error saving product pk=%s: %s", pk, exc)
+            messages.error(request, 'Unable to save product. Please try again.')
     
     context = {
         'product': product,

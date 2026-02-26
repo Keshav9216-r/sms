@@ -1,7 +1,11 @@
+import logging
+
 from django.http import HttpResponseForbidden
 from django.conf import settings
 from .models import Tenant
 from .utils import ensure_tenant_db, set_current_tenant
+
+logger = logging.getLogger(__name__)
 
 
 def _extract_tenant_code(request):
@@ -102,6 +106,10 @@ class TenantAccessMiddleware:
                                     'You do not have permission to access this section.'
                                 )
                 except Exception:
-                    pass  # Don't break requests on middleware errors
+                    logger.exception(
+                        "TenantAccessMiddleware: error checking staff permissions for user '%s' on path '%s'",
+                        getattr(request.user, 'username', 'unknown'),
+                        request.path,
+                    )
 
         return self.get_response(request)

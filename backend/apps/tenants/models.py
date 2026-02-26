@@ -1,27 +1,32 @@
+import logging
+
 from django.db import models
 from django.contrib.auth.models import User
+
+logger = logging.getLogger(__name__)
 
 
 class Tenant(models.Model):
     """Represents a Vendor with isolated database and data"""
-    
+
     STATUS_CHOICES = [
         ('active', 'Active'),
         ('inactive', 'Inactive'),
         ('suspended', 'Suspended'),
     ]
-    
+
     name = models.CharField(max_length=150)
     code = models.SlugField(unique=True)
     owner_email = models.EmailField()
     pan_number = models.CharField(max_length=30, blank=True, default='')
     qr_code = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
-    
-    # Database configuration for this vendor
-    # WARNING: db_password is stored as plaintext. In production, use an
-    # encrypted field (e.g. django-encrypted-model-fields) or store credentials
-    # in a secrets manager (e.g. AWS Secrets Manager, HashiCorp Vault) and
-    # reference them by a secret ID here instead of the raw password.
+
+    # Database configuration for this vendor.
+    # db_password must NOT be stored here in plaintext for production deployments.
+    # The current SQLite implementation does not use db_password at runtime.
+    # For MySQL/Postgres multi-tenant setups, store a secret reference ID here
+    # and resolve the credential from a secrets manager (AWS Secrets Manager,
+    # HashiCorp Vault, etc.) — never the raw password.
     db_name = models.CharField(max_length=120)
     db_user = models.CharField(max_length=120, blank=True)
     db_password = models.CharField(max_length=120, blank=True)
